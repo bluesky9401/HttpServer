@@ -51,10 +51,9 @@ A C++ High Performance HttpServer
 
  * 测试环境（虚拟机环境下测试，性能可能较物理机低）
    * CPU: Intel(R) Core(TM) i5-4440 CPU @ 3.10GHz
-   * Memory: 2G
-   * VirtualBox 5.2.20
-   * OS: CentOS Linux release 7.0.1406
-   * kernel: 3.10.0-123.el7.x86_64
+   * Memory: 3G
+   * OS: Ubuntu 17.04 (# cat /etc/issue)
+   * kernel: 4.10.0-42-generic.x86_64 (# uname -a)
   
 ### 单线程测试 （执行命令：./httpserver 80 0 0）
 * wrk测试结果：9万+QPS、4万+QPS
