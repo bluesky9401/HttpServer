@@ -1,21 +1,19 @@
 # webserver_chen
 
-A C++ High Performance NetServer (version 0.4.1)
+A C++ High Performance HttpServer
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
 
 ## Introduction  
 
-本项目为C++11编写的基于epoll的多线程网络服务器框架，应用层实现了简单的HTTP服务器HttpServer和一个回显服务器EchoServer，其中HTTP服务器实现了HTTP的解析和Get方法请求，目前支持静态资源访问，支持HTTP长连接；该框架不限于这两类服务器，用户可根据需要编写应用层服务。
+本项目为C++11编写的基于epoll的多线程HTTP网络服务器，实现了HTTP的解析和Get方法请求，目前支持静态资源访问，支持HTTP长连接以及管线化请求；
 
-## Origin and purpose of the project
-* 项目起源：大四的时候实现了一个简单基于epoll的多线程服务器，支持HTTP的GET方法和JSON解析（见[forumNet](https://github.com/chenshuaihao/forumNet/tree/master/forumNet)），后来看了陈硕的书，决定重写一个网络服务器。在项目过程中参阅了网上很多优秀的博客和开源项目，也参考了陈硕和林亚的代码，在此向他们表示感谢！
 * 项目目的：学习C++知识、部分C++11的语法和编码规范、学习巩固网络编程、网络IO模型、多线程、git使用、Linux命令、性能分析、TCP/IP、HTTP协议等知识
 
 ## Envoirment  
-* OS: CentOS Linux release 7.0.1406 (# cat /etc/redhat-release)
-* kernel: 3.10.0-123.el7.x86_64 (# uname -a)
-* Complier: 4.8.5
+* OS: Ubuntu 17.04 (# cat /etc/issue)
+* kernel: 4.10.0-42-generic.x86_64 (# uname -a)
+* Complier: 6.3.0
 
 ## Build
 
@@ -30,11 +28,9 @@ A C++ High Performance NetServer (version 0.4.1)
 	一般情况下，业务处理简单的话，工作线程数设为0即可
     
 ## Tech
- * 基于epoll的IO复用机制实现Reactor模式，采用边缘触发（ET）模式，和非阻塞模式
- * 由于采用ET模式，read、write和accept的时候必须采用循环的方式，直到error==EAGAIN为止，防止漏读等清况，这样的效率会比LT模式高很多，减少了触发次数
- * Version-0.1.0基于单线程实现，Version-0.2.0利用线程池实现多IO线程，Version-0.3.0实现通用worker线程池，基于one loop per thread的IO模式
- * 线程模型将划分为主线程、IO线程和worker线程，主线程接收客户端连接（accept），并通过Round-Robin策略分发给IO线程，IO线程负责连接管理（即事件监听和读写操作），worker线程负责业务计算任务（即对数据进行处理，应用层处理复杂的时候可以开启）
- * 基于时间轮实现定时器功能，定时剔除不活跃连接，时间轮的插入、删除复杂度为O(1)，执行复杂度取决于每个桶上的链表长度
+ * 基于epoll的IO复用机制实现Reactor模式，采用边缘触发（ET）模式，和IO非阻塞模式
+ * 由于采用ET模式，read、write和accept的时候必须采用循环的方式，直到error==EAGAIN为止，防止漏读等清况.
+ * 线程模型将划分为主线程、IO线程和worker线程，主线程主要负责监听连接到来事件、分配连接所需要的资源以及在连接关闭时进行一些处理工作，并通过Round-Robin策略分发给IO线程；IO线程负责监听连接的读写事件，并且进行数据的接收以及发送工作；工作线程负责对接收到的Http报文进行处理以及构建响应报文，为了支持Http管线化请求，IO线程只有在报文收取完整的情况下才把报文提交到工作线程中处理。
  * 采用智能指针管理多线程下的对象资源
  * 支持HTTP长连接
  * 支持优雅关闭连接
