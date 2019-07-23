@@ -1,49 +1,47 @@
-
+/* author: chen tongjie
+ * date:
+ * HttpWebServer */
+#include <iostream>
 #include <signal.h>
 #include "EventLoop.h"
-//#include "TcpServer.h"
 #include "HttpServer.h"
 #include "ThreadPool.h"
-#include <sstream>
-
-#define MAXTASKSIZE 1000
-
+using std::cout;
+using std::endl;
 EventLoop *mlp;
 ThreadPool *pThreadPool;
-//gprof
-static void sighandler1( int sig_no )   
-{   
-      exit(0);   
-}   
-static void sighandler2( int sig_no )   
-{   
-    mlp->quit();// 关闭主线程的EventLoop
-}   
 
 int main(int argc, char *argv[])
 {
-    signal(SIGUSR1, sighandler1);
-    signal(SIGUSR2, sighandler2);// 注册信号处理函数
-    //signal(SIGINT, sighandler2);
-    signal(SIGPIPE, SIG_IGN);  //SIG_IGN,系统函数，忽略信号的处理程序,客户端发送RST包后，服务器还调用write会触发
+    // 设置SIG_IGN信号的默认操作为忽略该信号，服务器接收到客户端发送
+    // 的RST分节后，TCP连接释放。若服务器再继续对套接字进行读写操作，
+    // 会触发SIGPIPE信号。
+    signal(SIGPIPE, SIG_IGN);
+    /* port: 监听套接字的端口号
+     * ioThreadNum: IO线程数目
+     * workerThreadNum: 工作线程数目
+     * idleSeconds: 空闲连接超时时间。
+     * */
     int port = 80;
     int ioThreadNum = 4;
     int workerThreadNum = 0;
-    if(argc == 4)
+    int idleSeconds = 0;
+    if(argc == 5)
     {
         port = atoi(argv[1]);
         ioThreadNum = atoi(argv[2]);
         workerThreadNum = atoi(argv[3]);
+        idleSeconds = atoi(argv[4]);
     }
-    pThreadPool = new ThreadPool(workerThreadNum, MAXTASKSIZE);
-
-    EventLoop loop;
-    mlp = &loop;
-    HttpServer httpServer(&loop, port, ioThreadNum);
-
+    pThreadPool = new ThreadPool(workerThreadNum);
+    mlp = new EventLoop();
+    cout << "main IO thread's loop" << mlp << endl;
+    HttpServer httpServer(mlp, port, ioThreadNum, idleSeconds);
+    // 启动线程池以及http服务器
     pThreadPool->start();
     httpServer.start();
-    loop.loop();
+    mlp->loop();
     delete pThreadPool;
+    delete mlp;
     return 0;
 }

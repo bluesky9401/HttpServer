@@ -19,14 +19,14 @@ Socket::Socket(/* args */)
         exit(-1);
     }
     closed_ = false;
-    std::cout << "Server Socket create: " << fd_ << std::endl;
+    std::cout << "Socket create: " << fd_ << std::endl;
 }
 
 Socket::~Socket()
 {
     if (!closed_) {
         ::close(fd_);
-        std::cout << "Server Socket close..." << std::endl;
+//        std::cout << "Socket close..." << std::endl;
     }
 }
 
@@ -54,7 +54,7 @@ void Socket::setNonblocking()
         perror("fcntl(serverfd_,SETFL,opts)");
         exit(1);
     }
-    std::cout << "set server socket setnonblocking..." << std::endl;
+    std::cout << "set socket setnonblocking..." << std::endl;
 }
 
 bool Socket::bindAddress(int port)
@@ -68,6 +68,7 @@ bool Socket::bindAddress(int port)
 	if (resval == -1)
 	{
 		::close(fd_);
+        closed_ = true;
 		perror("error bind");
 		exit(1);
 	}
@@ -80,6 +81,7 @@ bool Socket::listen()
 	if (::listen(fd_, 2048) < 0)
 	{
 		perror("error listen");
+        closed_ = true;
 		::close(fd_);
 		exit(1);
 	}
@@ -102,7 +104,7 @@ int Socket::accept(struct sockaddr_in &clientaddr)
     //std::cout << "server accept,clientfd: " << clientfd << std::endl;
     return clientfd;
 }
-
+// 为避免重复关闭, 第一次关闭需设置closed_
 bool Socket::close()
 {
     if (!closed_) 

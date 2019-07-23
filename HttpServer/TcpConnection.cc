@@ -10,23 +10,24 @@
 #include <errno.h>
 #include <unistd.h>
 #include "TcpConnection.h"
-
+#include "EventLoop.h"
+#include "Channel.h"
+#include <memory>
+using std::cin;
+using std::cout;
+using std::endl;
 #define BUFSIZE 4096
-
-/* 底层IO操作(从套接字读取数据) */
-int recvn(int fd, std::string &bufferIn);
-int sendn(int fd, std::string &bufferOut);
 
 TcpConnection::TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clientaddr)
     : loop_(loop),
-	fd_(fd),
-    clientaddr_(clientaddr),
-	halfClose_(false),
-	disconnected_(false)
+	  socket_(fd),
+      clientaddr_(clientaddr),
+	  halfClose_(false),
+	  connected_(true)
 {
 	//创建事件注册器，并将事件登记到注册器上
     spChannel_ = std::make_shared<Channel>();
-    spChannel_->setFd(fd_);
+    spChannel_->setFd(fd);
     spChannel_->setEvents(EPOLLIN | EPOLLET);
     spChannel_->setReadHandle(std::bind(&TcpConnection::handleRead, this));
     spChannel_->setWriteHandle(std::bind(&TcpConnection::handleWrite, this));
@@ -36,39 +37,30 @@ TcpConnection::TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clienta
 
 TcpConnection::~TcpConnection()
 {
-	// 移除事件
-    std::cout << "free TcpConnection " << fd_ << std::endl;
-	loop_->removeChannelToEpoller(spChannel_);// 从epoller中清除注册信息
-	close(fd_);
+    // 打印日志
+    cout << "call TcpConnection destructor!" << endl;
 }
 
 void TcpConnection::addChannelToLoop()
 {
-    // 主线程通过任务队列通知EventLoopThreadPool中的线程注册该Connection感兴趣的事件
+    // 主线程通过任务队列通知IO线程注册TcpConnection连接
 	loop_->addTask(std::bind(&EventLoop::addChannelToEpoller, loop_, spChannel_));
 }
 
-/* 由于有可能在工作线程池中调用send(), 故需判断当前线程是否为IO线程 */
 void TcpConnection::send()
 {
-	 // 判断当前IO线程是否为处理该connection的线程
-	 if(loop_->isInLoopThread())
-	 {
+    if (connected_)
 		sendInLoop();
-	 }
-	 else
-	{
-		//不是，则是跨线程调用,加入IO线程的任务队列，唤醒
-		loop_->addTask(std::bind(&TcpConnection::sendInLoop, shared_from_this()));
-	}
+    else
+        cout << "Send()--The TcpConnection has closed" << endl;
 }
 
 /* 在HTTP层处理完数据后发送数据, 若数据还有剩余，则监听该套接字的可读事件 */
 void TcpConnection::sendInLoop()
 {
-    std::cout << "sendInLoop " << std::endl;
-    int result = sendn(fd_, bufferOut_);// 将bufferout_中的数据输出
-    if(result > 0)// 成功输出数据
+    if (!connected_) return;
+    int result = sendn(socket_.fd(), bufferOut_);// 将bufferout_中的数据输出
+    if(result >= 0)// 成功输出数据
     {
 		event_t events = spChannel_->getEvents();// 若当前数据还有剩余，则需要在epoller_重新监听
         if(bufferOut_.size() > 0)
@@ -81,46 +73,22 @@ void TcpConnection::sendInLoop()
 		{
 			//数据已发完
 			spChannel_->setEvents(events & (~EPOLLOUT));// 不再监听是否可写
-			sendCompleteCallback_();// 调用发送完成回调函数(目前不做工作)
-
-			if(halfClose_)
-				handleClose();
+			sendCompleteCallback_();
+			if (connected_) 
+                loop_->updateChannelToEpoller(spChannel_);
 		}
     }
-    else if(result < 0) //发送出错
+    else //发送出错
     {        
 		handleError();
-    }
-	else 
-	{
-		handleClose();
-	}     
-}
-
-void TcpConnection::handleRead()
-{
-    // 接收数据，写入缓冲区
-    int result = recvn(fd_, bufferIn_);
-
-    // 业务回调,可以利用工作线程池处理，投递任务
-    if(result > 0)
-    {
-        handleMessageCallback_(bufferIn_);
-    }
-    else if(result == 0)
-    {
-        handleClose();
-    }
-    else
-    {
-        handleError();
-    }
+    }     
 }
 
 void TcpConnection::handleWrite()
 {
-    int result = sendn(fd_, bufferOut_);
-    if(result > 0)
+    if (!connected_) return;
+    int result = sendn(socket_.fd(), bufferOut_);
+    if(result >= 0)
     {
 		event_t events = spChannel_->getEvents();
         if(bufferOut_.size() > 0)
@@ -134,80 +102,93 @@ void TcpConnection::handleWrite()
 			//数据已发完
 			spChannel_->setEvents(events & (~EPOLLOUT));
 			sendCompleteCallback_();
-			//发送完毕，如果是半关闭状态，则可以close了
-			if(halfClose_)
-				handleClose();
+			if (connected_) 
+                loop_->updateChannelToEpoller(spChannel_);
 		}
     }
-    else if(result < 0)
+    else
     {        
 		handleError();
+    }    
+}
+
+void TcpConnection::handleRead()
+{
+    if (!connected_) return;
+    // 接收数据，写入bufferIn_
+    int result = recvn(socket_.fd(), bufferIn_);
+
+    // 如果有读入数据，则将读入的数据提交给Http层处理
+    if(result > 0)
+    {
+        handleMessageCallback_(bufferIn_);
     }
-	else
-	{
-		handleClose();
-	}     
+    else if(result == 0)// 对端连接关闭,有可能为shutdown()或close()
+    {
+        halfClose_ = true;
+        handleMessageCallback_(bufferIn_);
+    }
+    else
+    {
+        handleError();
+    }
 }
 
 void TcpConnection::handleError()
 {
-	if(disconnected_) { return; }
+	if(!connected_) return; 
+	connected_ = false;
+	loop_->removeChannelFromEpoller(spChannel_);
 	errorCallback_();// 调用上层错误回调函数做错误处理工作
-	//loop_->RemoveChannelToPoller(pchannel_);
-	//连接标记为清理
-	//task添加
-	disconnected_ = true;
-	loop_->addTask(connectionCleanUp_);
+    // 通知服务器清理连接
+	connectionCleanUp_();
 }
 
-//对端关闭连接,有两种，一种close，另一种是shutdown(半关闭)，但服务器并不清楚是哪一种，只能按照最保险的方式来，即发完数据再close
+// 对端关闭连接,有两种，一种close，另一种是shutdown(写半关闭)。
+// 一般来说，两种关闭方式都会在把发送缓冲区中的内容发送出去后发送FIN报文，
+// 故无法确定是哪种关闭方式。若为close关闭方式，服务器发送的数据会被客户端接收缓冲区丢弃
+// 但服务器并不清楚是哪一种，只能按照最保险的方式来，即发完数据再close
 void TcpConnection::handleClose()
 {
-	//移除事件
-	//loop_->RemoveChannelToPoller(pchannel_);
-	//连接标记为清理
-	//task添加
-	//loop_->AddTask(connectioncleanup_);
-	//closecallback_(this);
-
-	//20190217 优雅关闭，发完数据再关闭
-	if(disconnected_) { return; }
-	if(bufferOut_.size() > 0 || bufferIn_.size() > 0)
-	{
-		//如果还有数据待发送，则先发完,设置半关闭标志位
-		halfClose_ = true;
-		//还有数据刚刚才收到，但同时又收到FIN
-		if(bufferIn_.size() > 0)
-		{
-			handleMessageCallback_(bufferIn_);
-		}
-	}
-	else
-	{
-		disconnected_ = true;
-		closeCallback_();// 上层处理连接关闭工作
-		loop_->addTask(connectionCleanUp_);
-	}
+	if (!connected_) { return; }
+	connected_ = false;
+    loop_->removeChannelFromEpoller(spChannel_);// 从epoller中清除注册信息
+	closeCallback_();// 上层处理连接关闭工作
+	connectionCleanUp_();
 }
 
-int recvn(int fd, std::string &bufferIn)
+void TcpConnection::forceClose()
+{
+    if (loop_->isInLoopThread()) 
+    {
+        cout << "forceClose: close connection!" << endl;
+        if (!connected_) { return; }
+        connected_ = false;
+        loop_->removeChannelFromEpoller(spChannel_);
+        closeCallback_();
+        connectionCleanUp_();
+    } 
+    else
+    {
+        cout << "it is not in the IO thread!" << endl;
+        loop_->addTask(std::bind(&TcpConnection::forceClose, shared_from_this()));
+    }
+}
+int TcpConnection::recvn(int fd, std::string &bufferIn)
 {
     int nbyte = 0;
     int readSum = 0;
-    char buffer[BUFSIZE];
+    char buffer[BUFSIZE];// 每次最多只读BUFSIZE个字节
     for(;;)
     {
         //nbyte = recv(fd, buffer, BUFSIZE, 0);
 		nbyte = read(fd, buffer, BUFSIZE);
-		
+		onMessageCallback_();// 更新时间片
     	if (nbyte > 0)
 		{
             bufferIn.append(buffer, nbyte);//效率较低，2次拷贝
             readSum += nbyte;
-			if(nbyte < BUFSIZE)// 读取已完成
-				return readSum;// 读优化，减小一次读调用，因为一次调用耗时10+us
-			else
-				continue;
+			continue;// 为了避免漏读文件结尾，需要read到出现EAGAIN错误
 		}
 		else if (nbyte < 0)//异常
 		{
@@ -231,81 +212,62 @@ int recvn(int fd, std::string &bufferIn)
 		}
 		else// 返回0，客户端关闭socket，FIN
 		{
-			std::cout << "client close the Socket" << std::endl;
-            std::cout << "nihao" << std::endl;
-			return 0;
+//			std::cout << "client close the Socket" << std::endl;
+            halfClose_ = true;
+			return readSum;
 		}
     }
 }
 
-int sendn(int fd, std::string &bufferOut)
+int TcpConnection::sendn(int fd, std::string &bufferOut)
 {
 	ssize_t nbyte = 0;
-    int sendSum = 0;
 	size_t length = 0;
     // 获取当前bufferOut的数值
 	length = bufferOut.size();
 
-    // 注意：一次sendInLoop最多只发送BUFSIZE个字节的数据
-    // 若length大于BUFSIZE, 则剩余数据在下次缓冲区可写时发送
-	 if(length >= BUFSIZE)
-	 {
-	    length = BUFSIZE;// 仅发送BUFSIZE大小的数据
-	 }
-
-	for (;;)
-	{
-		//nbyte = send(fd, buffer, length, 0);
-		//nbyte = send(fd, bufferout.c_str(), length, 0);
-		nbyte = write(fd, bufferOut.c_str(), length);
-		if (nbyte > 0)
-		{
-            sendSum += nbyte;
-			bufferOut.erase(0, nbyte);
-            return sendSum;
-			length = bufferOut.size();// 更新bufferOut的length值
-            
-			 if(length >= BUFSIZE)
-			 {
-				length = BUFSIZE;
-			 }
-
-			 if (length == 0 )
-			 {
-				return sendSum;
-			}
-		}
-		else if (nbyte < 0)//异常
-		{
-			if (errno == EAGAIN)//系统缓冲区满，非阻塞返回
-			{
-				std::cout << "write errno == EAGAIN,not finish!" << std::endl;
-				return sendSum;
-			}
-			else if (errno == EINTR)
-			{
-				std::cout << "write errno == EINTR" << std::endl;
-				continue;
-			}
-			else if (errno == EPIPE)
-			{
-				//客户端已经close，并发了RST，继续wirte会报EPIPE，返回0，表示close
-				perror("write error");
-				std::cout << "write errno == client send RST" << std::endl;
-				return -1;
-			}
-			else
-			{
-				perror("write error");// Connection reset by peer
-				std::cout << "write error, unknow error" << std::endl;
-				return -1;
-			}
-		}
-		else//返回0
-		{
-			//应该不会返回0
-			//std::cout << "client close the Socket!" << std::endl;
-			return 0;
-		}
-	}
+    //nbyte = send(fd, buffer, length, 0);
+	//nbyte = send(fd, bufferout.c_str(), length, 0);
+    for (; ;) 
+    {
+	    nbyte = write(fd, bufferOut.c_str(), length);
+        onMessageCallback_();// 更新时间片
+	    if (nbyte > 0)
+    	{
+		    bufferOut.erase(0, nbyte);
+	        return nbyte;
+	    } 
+        else if (nbyte < 0)//异常
+	    {
+		    if (errno == EAGAIN)//系统缓冲区满，非阻塞返回
+		    {
+			    std::cout << "write errno == EAGAIN,not finish!" << std::endl;
+			    return 0;
+		    }
+		    else if (errno == EINTR)
+		    {
+			    std::cout << "write errno == EINTR" << std::endl;
+                continue;
+		    }
+		    else if (errno == EPIPE)
+		    {
+			    //客户端已经close，并发了RST，继续write会报EPIPE，返回0，表示close
+			    perror("write error");
+			    std::cout << "write errno == client send RST" << std::endl;
+			    return -1;
+		    }
+		    else
+		    {
+			    perror("write error");// Connection reset by peer
+			    std::cout << "write error, unknow error" << std::endl;
+			    return -1;
+		    }
+	    }
+	    else//返回0
+	    {
+		    //应该不会返回0
+		    //std::cout << "client close the Socket!" << std::endl;
+		    return 0;
+	    }
+    }
 }

@@ -6,9 +6,9 @@
 #ifndef _EVENTLOOP_THREAD_H_
 #define _EVENTLOOP_THREAD_H_
 
-#include <iostream>
 #include <string>
 #include <functional>
+#include <unistd.h>
 #include "Thread.h"
 #include "EventLoop.h"
 
@@ -20,12 +20,14 @@ public:
     ~EventLoopThread();
 
     EventLoop* getLoop();
+    pid_t getThreadId() const 
+    { return tid_; }
     void start();
     void threadFunc();//线程真正执行的函数
 private:
     Thread thread_;
     EventLoop *loop_;
-    pthread_t threadId_;
+    pid_t tid_;
     std::string name_;
 };
 #endif

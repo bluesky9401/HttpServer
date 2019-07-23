@@ -1,15 +1,14 @@
 #include "EventLoopThreadPool.h"
-#include <string>
 
 EventLoopThreadPool::EventLoopThreadPool(EventLoop *mainLoop, int threadNum)
     : mainLoop_(mainLoop),
-    threadNum_(threadNum),
-    threadList_(),
-    index_(0)
+      threadNum_(threadNum),
+      threadList_(),
+      index_(0)
 {
     for(int i = 0; i < threadNum_; ++i)
     {
-        EventLoopThread *pEventLoopThread = new EventLoopThread(std::to_string(i));
+        EventLoopThread *pEventLoopThread = new EventLoopThread();
         threadList_.push_back(pEventLoopThread);
     }
 }
@@ -34,7 +33,7 @@ void EventLoopThreadPool::start()
     }
     else
     {
-        std::cout << "the thread's number of EventLoopThreadPool is 0";
+        std::cout << "the thread's number of EventLoopThreadPool is less than 1";
     }
 }
 

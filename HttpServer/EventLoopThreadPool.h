@@ -21,9 +21,8 @@ public:
 private:
     EventLoop *mainLoop_;
     int threadNum_;
-    std::vector<EventLoopThread*> threadList_;
     int index_;
-
+    std::vector<EventLoopThread*> threadList_;
 };
 
 #endif

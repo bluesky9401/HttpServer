@@ -1,7 +1,8 @@
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "EventLoopThread.h"
-
+#include "CurrentThread.h"
 EventLoopThread::EventLoopThread(std::string n)
     : thread_(std::bind(&EventLoopThread::threadFunc, this)),
       loop_(NULL),
@@ -23,18 +24,18 @@ EventLoop* EventLoopThread::getLoop()
 {
     return loop_;
 }
+
 void EventLoopThread::start()
 {
-    //create thread
+    // 启动线程
     thread_.start();// 创建线程
 }
-
+// 用户线程任务
 void EventLoopThread::threadFunc()
 {
+    tid_ = CurrentThread::tid();
     EventLoop loop;
     loop_ = &loop;
-
-    threadId_ = thread_.getThreadId();
-    std::cout << "IO thread " << name_ << " started" << std::endl;
+    std::cout << "IO thread " << std::to_string(tid_) << " started..." << std::endl;
     loop_->loop();
 }

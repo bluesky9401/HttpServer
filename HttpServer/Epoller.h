@@ -20,9 +20,9 @@ public:
     ~Epoller();
 
     void epoll(ChannelList &activeChannelList);
-    void addChannel(SP_Channel pChannel);
-    void removeChannel(SP_Channel pChannel);
-    void updateChannel(SP_Channel pChannel);
+    void addChannel(SP_Channel spChannel);
+    void removeChannel(SP_Channel spChannel);
+    void updateChannel(SP_Channel spChannel);
 private:
     void fillActiveChannelList();
     int epollfd_;

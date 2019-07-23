@@ -1,0 +1,282 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+BUFSIZE	TcpConnection.cc	14;"	d	file:
+CC	Makefile	/^CC := g++$/;"	m
+CFLAGS	Makefile	/^CFLAGS := -Wall -O -g$/;"	m
+Callback	Channel.h	/^    typedef std::function<void()> Callback;$/;"	t	class:Channel
+Callback	TcpConnection.h	/^    typedef std::function<void()> Callback;$/;"	t	class:TcpConnection
+Callback	TcpServer.h	/^    typedef std::function<void(SP_TcpConnection)> Callback;$/;"	t	class:TcpServer
+Channel	Channel.cc	/^Channel::Channel()$/;"	f	class:Channel
+Channel	Channel.h	/^class Channel$/;"	c
+ChannelList	Epoller.h	/^    typedef std::vector<SP_Channel> ChannelList;$/;"	t	class:Epoller
+ChannelList	EventLoop.h	/^    typedef std::vector<SP_Channel> ChannelList;  $/;"	t	class:EventLoop
+EVENTNUM	Epoller.cc	20;"	d	file:
+Epoller	Epoller.cc	/^Epoller::Epoller(\/* args *\/)$/;"	f	class:Epoller
+Epoller	Epoller.h	/^class Epoller$/;"	c
+EventLoop	EventLoop.cc	/^EventLoop::EventLoop(\/* args *\/)$/;"	f	class:EventLoop
+EventLoop	EventLoop.h	/^class EventLoop \/*nocopyable*\/$/;"	c
+EventLoopThread	EventLoopThread.cc	/^EventLoopThread::EventLoopThread(std::string n)$/;"	f	class:EventLoopThread
+EventLoopThread	EventLoopThread.h	/^class EventLoopThread$/;"	c
+EventLoopThreadPool	EventLoopThreadPool.cc	/^EventLoopThreadPool::EventLoopThreadPool(EventLoop *mainLoop, int threadNum)$/;"	f	class:EventLoopThreadPool
+EventLoopThreadPool	EventLoopThreadPool.h	/^class EventLoopThreadPool$/;"	c
+Functor	EventLoop.h	/^    typedef std::function<void()> Functor; \/\/用作回调函数$/;"	t	class:EventLoop
+HandleMessageCallback	TcpConnection.h	/^    typedef std::function<void(std::string&)> HandleMessageCallback;\/\/ 上层Http业务处理函数$/;"	t	class:TcpConnection
+HttpProcessContext	HttpSession.h	/^struct HttpProcessContext {$/;"	s
+HttpServer	HttpServer.cc	/^HttpServer::HttpServer(EventLoop *loop, int port, int ioThreadNum)$/;"	f	class:HttpServer
+HttpServer	HttpServer.h	/^class HttpServer { $/;"	c
+HttpSession	HttpSession.cc	/^HttpSession::HttpSession(SP_TcpConnection spTcpConn, std::string name)$/;"	f	class:HttpSession
+HttpSession	HttpSession.h	/^class HttpSession : public std::enable_shared_from_this<HttpSession>$/;"	c
+LIB	Makefile	/^LIB := -lpthread$/;"	m
+MAXCONNECTION	TcpServer.h	23;"	d
+MAXTASKSIZE	main.cc	10;"	d	file:
+MutexLock	MutexLock.h	/^    MutexLock() $/;"	f	class:MutexLock
+MutexLock	MutexLock.h	/^class MutexLock {$/;"	c
+MutexLockGuard	MutexLock.h	/^    explicit MutexLockGuard(MutexLock &mutex): mutex_(mutex)$/;"	f	class:MutexLockGuard
+MutexLockGuard	MutexLock.h	/^class MutexLockGuard {$/;"	c
+OBJS	Makefile	/^OBJS := $(patsubst *.cc, *.o, $(SOURCES))$/;"	m
+SOURCES	Makefile	/^SOURCES := $(wildcard *.cc)$/;"	m
+SP_Channel	Epoller.h	/^    typedef std::shared_ptr<Channel> SP_Channel;$/;"	t	class:Epoller
+SP_Channel	EventLoop.h	/^    typedef std::shared_ptr<Channel> SP_Channel;$/;"	t	class:EventLoop
+SP_Channel	TcpConnection.h	/^    typedef std::shared_ptr<Channel> SP_Channel;$/;"	t	class:TcpConnection
+SP_Channel	TcpServer.h	/^    typedef std::shared_ptr<Channel> SP_Channel;$/;"	t	class:TcpServer
+SP_HttpProcessContext	HttpSession.h	/^    typedef std::shared_ptr<HttpProcessContext> SP_HttpProcessContext;$/;"	t	class:HttpSession
+SP_HttpSession	HttpServer.h	/^    typedef std::shared_ptr<HttpSession> SP_HttpSession;$/;"	t	class:HttpServer
+SP_TcpConnection	HttpServer.h	/^    typedef std::shared_ptr<TcpConnection> SP_TcpConnection;$/;"	t	class:HttpServer
+SP_TcpConnection	HttpSession.h	/^    typedef std::shared_ptr<TcpConnection> SP_TcpConnection;$/;"	t	class:HttpSession
+SP_TcpConnection	TcpServer.h	/^    typedef std::shared_ptr<TcpConnection> SP_TcpConnection;$/;"	t	class:TcpServer
+Socket	Socket.cc	/^Socket::Socket(\/* args *\/)$/;"	f	class:Socket
+Socket	Socket.h	/^class Socket$/;"	c
+TARGET	Makefile	/^TARGET := httpServer.out$/;"	m
+TIMEOUT	Epoller.cc	21;"	d	file:
+TaskCallback	TcpConnection.h	/^    typedef std::function<void()> TaskCallback;$/;"	t	class:TcpConnection
+Task_t	ThreadPool.h	/^    typedef std::function<void()> Task_t;$/;"	t	class:ThreadPool
+TcpConnection	TcpConnection.cc	/^TcpConnection::TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clientaddr)$/;"	f	class:TcpConnection
+TcpConnection	TcpConnection.h	/^class TcpConnection : public std::enable_shared_from_this<TcpConnection>$/;"	c
+TcpServer	TcpServer.cc	/^TcpServer::TcpServer(EventLoop *loop, int port, int threadNum)$/;"	f	class:TcpServer
+TcpServer	TcpServer.h	/^class TcpServer$/;"	c
+Thread	Thread.cc	/^Thread::Thread(const ThreadFunc &func, const std::string &n)$/;"	f	class:Thread
+Thread	Thread.h	/^class Thread$/;"	c
+ThreadData	Thread.h	/^    ThreadData(const ThreadFunc &func) : func_(func)$/;"	f	struct:ThreadData
+ThreadData	Thread.h	/^struct ThreadData$/;"	s
+ThreadFunc	Thread.h	/^    typedef Thread::ThreadFunc ThreadFunc;$/;"	t	struct:ThreadData
+ThreadFunc	Thread.h	/^    typedef std::function<void ()> ThreadFunc;\/\/ 线程实际要做的工作$/;"	t	class:Thread
+ThreadFunction	EventLoopThread.h	/^    typedef std::function<void()> ThreadFunction;$/;"	t	class:EventLoopThread
+ThreadPool	ThreadPool.cc	/^ThreadPool::ThreadPool(unsigned threadNum, unsigned maxQueueSize)$/;"	f	class:ThreadPool
+ThreadPool	ThreadPool.h	/^class ThreadPool$/;"	c
+_CHANNEL_H_	Channel.h	9;"	d
+_EPOLLER_H_	Epoller.h	4;"	d
+_EVENTLOOP_H_	EventLoop.h	20;"	d
+_EVENTLOOP_THREAD_H_	EventLoopThread.h	7;"	d
+_EVENTLOOP_THREAD_POOL_H_	EventLoopThreadPool.h	6;"	d
+_HTTP_SERVER_H_	HttpServer.h	9;"	d
+_HTTP_SESSION_H_	HttpSession.h	31;"	d
+_MUTEX_LOCK_	MutexLock.h	3;"	d
+_SOCKET_H_	Socket.h	6;"	d
+_TCP_CONNECTION_H_	TcpConnection.h	7;"	d
+_TCP_SERVER_H_	TcpServer.h	11;"	d
+_THREAD_H_	Thread.h	6;"	d
+_THREAD_POOL_H_	ThreadPool.h	22;"	d
+accept	Socket.cc	/^int Socket::accept(struct sockaddr_in &clientaddr)$/;"	f	class:Socket
+activeChannelList_	EventLoop.h	/^    ChannelList activeChannelList_;\/\/ 激活事件链表$/;"	m	class:EventLoop
+addChannel	Epoller.cc	/^void Epoller::addChannel(SP_Channel spChannel)$/;"	f	class:Epoller
+addChannelToEpoller	EventLoop.h	/^    void addChannelToEpoller(SP_Channel spChannel)$/;"	f	class:EventLoop
+addChannelToLoop	TcpConnection.cc	/^void TcpConnection::addChannelToLoop()$/;"	f	class:TcpConnection
+addTask	EventLoop.h	/^    void addTask(Functor functor)$/;"	f	class:EventLoop
+addTask	ThreadPool.cc	/^int ThreadPool::addTask(Task_t task)$/;"	f	class:ThreadPool
+addToBuf	HttpSession.cc	/^void HttpSession::addToBuf(std::string &s)$/;"	f	class:HttpSession
+assertInLoopThread	EventLoop.h	/^    void assertInLoopThread()$/;"	f	class:EventLoop
+bindAddress	Socket.cc	/^bool Socket::bindAddress(int port)$/;"	f	class:Socket
+body	HttpSession.h	/^	std::string body;$/;"	m	struct:HttpProcessContext
+bufferIn_	TcpConnection.h	/^    std::string bufferIn_;$/;"	m	class:TcpConnection
+bufferOut_	TcpConnection.h	/^    std::string bufferOut_;$/;"	m	class:TcpConnection
+channelMap_	Epoller.h	/^    std::map<int, SP_Channel> channelMap_;\/\/ 记录fd--Channel*的map映射表$/;"	m	class:Epoller
+clientaddr_	TcpConnection.h	/^    struct sockaddr_in clientaddr_;$/;"	m	class:TcpConnection	typeref:struct:TcpConnection::sockaddr_in
+close	Socket.cc	/^bool Socket::close()$/;"	f	class:Socket
+closeCallback_	TcpConnection.h	/^    Callback closeCallback_;$/;"	m	class:TcpConnection
+closeHandler_	Channel.h	/^    Callback closeHandler_;$/;"	m	class:Channel
+closed_	Socket.h	/^    bool closed_;$/;"	m	class:Socket
+completed_	HttpSession.h	/^    bool completed_;\/\/ 用于标记当前报文是否完整$/;"	m	class:HttpSession
+connCount_	TcpServer.h	/^    int connCount_;$/;"	m	class:TcpServer
+connected_	HttpSession.h	/^    bool connected_ = true;\/\/ 标记当前会话是否关闭$/;"	m	class:HttpSession
+connectionCleanUp_	TcpConnection.h	/^    TaskCallback connectionCleanUp_;$/;"	m	class:TcpConnection
+createEventFd	EventLoop.cc	/^int createEventFd()$/;"	f
+crlfcrlfPos_	HttpSession.h	/^    size_type crlfcrlfPos_;\/\/ 记录“\\r\\n\\r\\n”的接收位置$/;"	m	class:HttpSession
+currMethod_	HttpSession.h	/^    std::string currMethod_; \/\/ 当前正在分离的请求报文类型$/;"	m	class:HttpSession
+disconnected_	TcpConnection.h	/^    bool disconnected_; \/\/已关闭标志位$/;"	m	class:TcpConnection
+epoll	Epoller.cc	/^void Epoller::epoll(ChannelList &activeChannelList)$/;"	f	class:Epoller
+epoller_	EventLoop.h	/^    Epoller epoller_;$/;"	m	class:EventLoop
+epollfd_	Epoller.h	/^    int epollfd_;$/;"	m	class:Epoller
+errorCallback_	TcpConnection.h	/^    Callback errorCallback_;$/;"	m	class:TcpConnection
+errorHandler_	Channel.h	/^    Callback errorHandler_;$/;"	m	class:Channel
+eventList_	Epoller.h	/^    std::vector<struct epoll_event> eventList_;\/\/ 用于在epoll_wait保存返回的激活事件$/;"	m	class:Epoller
+eventLoopThreadPool_	TcpServer.h	/^    EventLoopThreadPool eventLoopThreadPool_;$/;"	m	class:TcpServer
+event_t	Channel.h	/^    typedef uint32_t event_t;$/;"	t	class:Channel
+event_t	TcpConnection.h	/^    typedef uint32_t event_t;$/;"	t	class:TcpConnection
+events_	Channel.h	/^    event_t events_;\/\/ Channel希望注册到epoll的事件 $/;"	m	class:Channel
+executeTask	EventLoop.h	/^    void executeTask()$/;"	f	class:EventLoop
+fd	Socket.h	/^    int fd() const { return fd_; }    $/;"	f	class:Socket
+fd	TcpConnection.h	/^    int fd()$/;"	f	class:TcpConnection
+fd_	Channel.h	/^    int fd_;$/;"	m	class:Channel
+fd_	Socket.h	/^    int fd_;$/;"	m	class:Socket
+fd_	TcpConnection.h	/^    int fd_;$/;"	m	class:TcpConnection
+front_	ThreadPool.h	/^    int front_;\/\/ 队列头$/;"	m	class:ThreadPool
+func_	Thread.h	/^    ThreadFunc func_;$/;"	m	struct:ThreadData
+func_	Thread.h	/^    ThreadFunc func_;\/\/ 线程实际工作$/;"	m	class:Thread
+functorList_	EventLoop.h	/^    std::vector<Functor> functorList_;\/\/ 作为任务队列$/;"	m	class:EventLoop
+get	MutexLock.h	/^    pthread_mutex_t *get() $/;"	f	class:MutexLock
+getEvents	Channel.h	/^    event_t getEvents() const$/;"	f	class:Channel
+getFd	Channel.h	/^    int getFd() const$/;"	f	class:Channel
+getLoop	EventLoopThread.cc	/^EventLoop* EventLoopThread::getLoop()$/;"	f	class:EventLoopThread
+getNextLoop	EventLoopThreadPool.cc	/^EventLoop* EventLoopThreadPool::getNextLoop()$/;"	f	class:EventLoopThreadPool
+getThreadId	EventLoop.h	/^    pthread_t getThreadId()$/;"	f	class:EventLoop
+getThreadId	Thread.h	/^    pthread_t getThreadId() const { return pthreadId_; }$/;"	f	class:Thread
+getThreadNum	ThreadPool.h	/^    int getThreadNum() const\/\/ 返回线程数$/;"	f	class:ThreadPool
+halfClose_	TcpConnection.h	/^    bool halfClose_; \/\/半关闭标志位$/;"	m	class:TcpConnection
+handleClose	HttpSession.cc	/^void HttpSession::handleClose()$/;"	f	class:HttpSession
+handleClose	TcpConnection.cc	/^void TcpConnection::handleClose()$/;"	f	class:TcpConnection
+handleError	EventLoop.cc	/^void EventLoop::handleError()$/;"	f	class:EventLoop
+handleError	HttpSession.cc	/^void HttpSession::handleError()$/;"	f	class:HttpSession
+handleError	TcpConnection.cc	/^void TcpConnection::handleError()$/;"	f	class:TcpConnection
+handleEvent	Channel.cc	/^void Channel::handleEvent()$/;"	f	class:Channel
+handleMessage	HttpSession.cc	/^void HttpSession::handleMessage(std::string &s)$/;"	f	class:HttpSession
+handleMessageCallback_	TcpConnection.h	/^    HandleMessageCallback handleMessageCallback_;$/;"	m	class:TcpConnection
+handleMessageTask	HttpSession.cc	/^void HttpSession::handleMessageTask(SP_HttpProcessContext spProContext)$/;"	f	class:HttpSession
+handleNewConnection	HttpServer.cc	/^void HttpServer::handleNewConnection(SP_TcpConnection spTcpConn)$/;"	f	class:HttpServer
+handleRead	EventLoop.cc	/^void EventLoop::handleRead()$/;"	f	class:EventLoop
+handleRead	TcpConnection.cc	/^void TcpConnection::handleRead()$/;"	f	class:TcpConnection
+handleSendComplete	HttpSession.cc	/^void HttpSession::handleSendComplete()$/;"	f	class:HttpSession
+handleWrite	TcpConnection.cc	/^void TcpConnection::handleWrite()$/;"	f	class:TcpConnection
+header	HttpSession.h	/^	std::map<std::string, std::string> header;$/;"	m	struct:HttpProcessContext
+httpError	HttpSession.cc	/^void HttpSession::httpError(int err_num, std::string short_msg, SP_HttpProcessContext spProContext)$/;"	f	class:HttpSession
+httpProcess	HttpSession.cc	/^void HttpSession::httpProcess(SP_HttpProcessContext spProContext)$/;"	f	class:HttpSession
+index_	EventLoopThreadPool.h	/^    int index_;$/;"	m	class:EventLoopThreadPool
+index_	HttpServer.h	/^    int index_ = 0;$/;"	m	class:HttpServer
+isInLoopThread	EventLoop.h	/^    bool isInLoopThread() const { return tid_ == pthread_self(); }$/;"	f	class:EventLoop
+join	Thread.cc	/^int Thread::join()$/;"	f	class:Thread
+joined_	Thread.h	/^    bool joined_;\/\/ 用于判断线程是否已销毁$/;"	m	class:Thread
+keepAlive	HttpSession.h	/^    bool keepAlive = false;$/;"	m	struct:HttpProcessContext
+keepAlive	HttpSession.h	/^    bool keepAlive() const$/;"	f	class:HttpSession
+keepAlive_	HttpSession.h	/^    bool keepAlive_;$/;"	m	class:HttpSession
+listen	Socket.cc	/^bool Socket::listen()$/;"	f	class:Socket
+lock	MutexLock.h	/^    void lock() $/;"	f	class:MutexLock
+loop	EventLoop.cc	/^void EventLoop::loop()$/;"	f	class:EventLoop
+loop_	EventLoopThread.h	/^    EventLoop *loop_;$/;"	m	class:EventLoopThread
+loop_	TcpConnection.h	/^    EventLoop *loop_;$/;"	m	class:TcpConnection
+loop_	TcpServer.h	/^    EventLoop *loop_;\/\/ 所绑定的EventLoop$/;"	m	class:TcpServer
+main	main.cc	/^int main(int argc, char *argv[])$/;"	f
+mainLoop_	EventLoopThreadPool.h	/^    EventLoop *mainLoop_;$/;"	m	class:EventLoopThreadPool
+maxQueueSize_	ThreadPool.h	/^    int maxQueueSize_;\/\/ 队列的最大数量$/;"	m	class:ThreadPool
+method	HttpSession.h	/^	std::string method;$/;"	m	struct:HttpProcessContext
+mlp	main.cc	/^EventLoop *mlp;$/;"	v
+mutex_	EventLoop.h	/^    MutexLock mutex_;$/;"	m	class:EventLoop
+mutex_	MutexLock.h	/^    MutexLock &mutex_;$/;"	m	class:MutexLockGuard
+mutex_	MutexLock.h	/^    pthread_mutex_t mutex_;$/;"	m	class:MutexLock
+mutex_	ThreadPool.h	/^    ::pthread_mutex_t mutex_;\/\/ 线程池锁，用于锁住整个线程池 $/;"	m	class:ThreadPool
+name	Thread.h	/^    const std::string& name() const { return name_; }$/;"	f	class:Thread
+name_	EventLoopThread.h	/^    std::string name_;$/;"	m	class:EventLoopThread
+name_	HttpSession.h	/^    std::string name_;$/;"	m	class:HttpSession
+name_	Thread.h	/^    std::string name_;\/\/ 线程名字$/;"	m	class:Thread
+newConnectionCallback_	TcpServer.h	/^    Callback newConnectionCallback_;$/;"	m	class:TcpServer
+notifyIoThreadDataPrepare	HttpSession.cc	/^void HttpSession::notifyIoThreadDataPrepare(SP_HttpProcessContext spProContext)$/;"	f	class:HttpSession
+onConnectionError	TcpServer.cc	/^void TcpServer::onConnectionError()$/;"	f	class:TcpServer
+onNewConnection	TcpServer.cc	/^void TcpServer::onNewConnection()$/;"	f	class:TcpServer
+pThreadPool	main.cc	/^ThreadPool *pThreadPool;$/;"	v
+parseHttpRequest	HttpSession.cc	/^void HttpSession::parseHttpRequest(SP_HttpProcessContext spProContext)$/;"	f	class:HttpSession
+parseRcvMsg	HttpSession.cc	/^int HttpSession::parseRcvMsg()$/;"	f	class:HttpSession
+pthreadId_	Thread.h	/^    pthread_t pthreadId_;\/\/ 线程在进程中的id$/;"	m	class:Thread
+queueNotEmpty_	ThreadPool.h	/^    ::pthread_cond_t queueNotEmpty_;\/\/ 条件变量，用于通知线程从任务队列取任务$/;"	m	class:ThreadPool
+queueSize_	ThreadPool.h	/^    int queueSize_;\/\/ 当前队列中任务的数量$/;"	m	class:ThreadPool
+quit	EventLoop.h	/^    void quit()$/;"	f	class:EventLoop
+quit_	EventLoop.h	/^    bool quit_;$/;"	m	class:EventLoop
+readHandler_	Channel.h	/^    Callback readHandler_;$/;"	m	class:Channel
+rear_	ThreadPool.h	/^    int rear_;\/\/ 队列尾后元素$/;"	m	class:ThreadPool
+recvMsg_	HttpSession.h	/^    std::string recvMsg_;\/\/ 从缓冲区接收的报文$/;"	m	class:HttpSession
+recvn	TcpConnection.cc	/^int recvn(int fd, std::string &bufferIn)$/;"	f
+remain_	HttpSession.h	/^    size_type remain_;\/\/ 用于记录POST请求还剩余多少数据未读$/;"	m	class:HttpSession
+removeChannel	Epoller.cc	/^void Epoller::removeChannel(SP_Channel spChannel)$/;"	f	class:Epoller
+removeChannelToEpoller	EventLoop.h	/^    void removeChannelToEpoller(SP_Channel spChannel)$/;"	f	class:EventLoop
+removeConnection	TcpServer.cc	/^void TcpServer::removeConnection(int fd)$/;"	f	class:TcpServer
+requestContext	HttpSession.h	/^    std::string requestContext;\/\/ 待解析的请求报文$/;"	m	struct:HttpProcessContext
+responseContext	HttpSession.h	/^    std::string responseContext;\/\/ 待发送响应报文$/;"	m	struct:HttpProcessContext
+revents_	Channel.h	/^    event_t revents_;\/\/ epoll返回的激活事件$/;"	m	class:Channel
+send	TcpConnection.cc	/^void TcpConnection::send()$/;"	f	class:TcpConnection
+sendCompleteCallback_	TcpConnection.h	/^    Callback sendCompleteCallback_;$/;"	m	class:TcpConnection
+sendInLoop	TcpConnection.cc	/^void TcpConnection::sendInLoop()$/;"	f	class:TcpConnection
+sendn	TcpConnection.cc	/^int sendn(int fd, std::string &bufferOut)$/;"	f
+serverSocket_	TcpServer.h	/^    Socket serverSocket_;\/\/ TCP服务器的监听套接字$/;"	m	class:TcpServer
+setCloseCallback	TcpConnection.h	/^    void setCloseCallback(Callback &&cb)$/;"	f	class:TcpConnection
+setCloseHandle	Channel.h	/^    void setCloseHandle(Callback &&cb)$/;"	f	class:Channel
+setConnectionCleanUp	TcpConnection.h	/^    void setConnectionCleanUp(const TaskCallback &cb)$/;"	f	class:TcpConnection
+setDefaultName	Thread.cc	/^void Thread::setDefaultName()$/;"	f	class:Thread
+setErrorCallback	TcpConnection.h	/^    void setErrorCallback(Callback &&cb)$/;"	f	class:TcpConnection
+setErrorHandle	Channel.h	/^    void setErrorHandle(Callback &&cb)$/;"	f	class:Channel
+setEvents	Channel.h	/^    void setEvents(event_t events)$/;"	f	class:Channel
+setFd	Channel.h	/^    void setFd(int fd) $/;"	f	class:Channel
+setHandleMessageCallback	TcpConnection.h	/^    void setHandleMessageCallback(HandleMessageCallback &&cb)$/;"	f	class:TcpConnection
+setHttpProcessContext_	HttpSession.h	/^    std::set<SP_HttpProcessContext> setHttpProcessContext_;$/;"	m	class:HttpSession
+setNewConnCallback	TcpServer.h	/^    void setNewConnCallback(Callback &&cb)$/;"	f	class:TcpServer
+setNonblocking	Socket.cc	/^void Socket::setNonblocking()$/;"	f	class:Socket
+setNonblocking	TcpServer.cc	/^void setNonblocking(int fd)$/;"	f
+setREvents	Channel.h	/^    void setREvents(event_t events) $/;"	f	class:Channel
+setReadHandle	Channel.h	/^    void setReadHandle(Callback &&cb)$/;"	f	class:Channel
+setReuseAddr	Socket.cc	/^void Socket::setReuseAddr()\/\/ 将socket设置为地址可复用$/;"	f	class:Socket
+setSendCompleteCallback	TcpConnection.h	/^    void setSendCompleteCallback(Callback &&cb)$/;"	f	class:TcpConnection
+setSocketOption	Socket.cc	/^void Socket::setSocketOption()$/;"	f	class:Socket
+setWriteHandle	Channel.h	/^    void setWriteHandle(Callback &&cb)$/;"	f	class:Channel
+size_type	HttpSession.h	/^    typedef std::string::size_type size_type;$/;"	t	class:HttpSession
+spChannel_	TcpConnection.h	/^    SP_Channel spChannel_;$/;"	m	class:TcpConnection
+spCurrPro_	HttpSession.h	/^    SP_HttpProcessContext spCurrPro_; \/\/ 指向当前正在处理的报文$/;"	m	class:HttpSession
+spServerChannel_	TcpServer.h	/^    SP_Channel spServerChannel_;$/;"	m	class:TcpServer
+spTcpConn_	HttpSession.h	/^    SP_TcpConnection spTcpConn_;\/\/ 此处持有SP_TcpConnection指针,注意在连接关闭时释放$/;"	m	class:HttpSession
+spWakeUpChannel_	EventLoop.h	/^    SP_Channel spWakeUpChannel_;$/;"	m	class:EventLoop
+start	EventLoopThread.cc	/^void EventLoopThread::start()$/;"	f	class:EventLoopThread
+start	EventLoopThreadPool.cc	/^void EventLoopThreadPool::start()$/;"	f	class:EventLoopThreadPool
+start	HttpServer.cc	/^void HttpServer::start()$/;"	f	class:HttpServer
+start	TcpServer.cc	/^void TcpServer::start()$/;"	f	class:TcpServer
+start	Thread.cc	/^void Thread::start()$/;"	f	class:Thread
+start	ThreadPool.cc	/^void ThreadPool::start() $/;"	f	class:ThreadPool
+startThread	Thread.cc	/^void *startThread(void *obj)\/\/ 封装线程实际运行的函数$/;"	f
+started	Thread.h	/^    bool started() const { return started_; }\/\/ 返回线程的运行状态$/;"	f	class:Thread
+started_	Thread.h	/^    bool started_;\/\/ 表示线程的运行状态$/;"	m	class:Thread
+starting_	ThreadPool.h	/^    bool starting_;\/\/ 线程池工作状态$/;"	m	class:ThreadPool
+stop	ThreadPool.cc	/^void ThreadPool::stop()$/;"	f	class:ThreadPool
+success	HttpSession.h	/^    bool success = false;\/\/ 标记报文是否成功处理$/;"	m	struct:HttpProcessContext
+taskNum_	HttpSession.h	/^    unsigned taskNum_ = 0;\/\/ 存放当前会话在工作线程的任务数$/;"	m	class:HttpSession
+taskQueue_	ThreadPool.h	/^    std::vector<Task_t> taskQueue_;\/\/ 任务队列(采用环状结构)$/;"	m	class:ThreadPool
+tcpList_	TcpServer.h	/^    std::map<int, SP_TcpConnection> tcpList_;$/;"	m	class:TcpServer
+tcpServer_	HttpServer.h	/^    TcpServer tcpServer_;$/;"	m	class:HttpServer
+threadFunc	EventLoopThread.cc	/^void EventLoopThread::threadFunc()$/;"	f	class:EventLoopThread
+threadFunc	ThreadPool.cc	/^void ThreadPool::threadFunc()$/;"	f	class:ThreadPool
+threadId_	EventLoopThread.h	/^    pthread_t threadId_;$/;"	m	class:EventLoopThread
+threadList_	EventLoopThreadPool.h	/^    std::vector<EventLoopThread*> threadList_;$/;"	m	class:EventLoopThreadPool
+threadNum_	EventLoopThreadPool.h	/^    int threadNum_;$/;"	m	class:EventLoopThreadPool
+threadNum_	ThreadPool.h	/^    int threadNum_;\/\/ 线程池数量$/;"	m	class:ThreadPool
+thread_	EventLoopThread.h	/^    Thread thread_;$/;"	m	class:EventLoopThread
+threads_	ThreadPool.h	/^    std::vector<Thread> threads_;\/\/ 线程池数组$/;"	m	class:ThreadPool
+tid_	EventLoop.h	/^    pthread_t tid_;$/;"	m	class:EventLoop
+unlock	MutexLock.h	/^    void unlock()$/;"	f	class:MutexLock
+updateChannel	Epoller.cc	/^void Epoller::updateChannel(SP_Channel spChannel)$/;"	f	class:Epoller
+updateChannelToEpoller	EventLoop.h	/^    void updateChannelToEpoller(SP_Channel spChannel)$/;"	f	class:EventLoop
+url	HttpSession.h	/^	std::string url;$/;"	m	struct:HttpProcessContext
+version	HttpSession.h	/^	std::string version;$/;"	m	struct:HttpProcessContext
+wakeUp	EventLoop.cc	/^void EventLoop::wakeUp()$/;"	f	class:EventLoop
+wakeUpFd_	EventLoop.h	/^    int wakeUpFd_;\/\/跨线程唤醒fd$/;"	m	class:EventLoop
+writeHandler_	Channel.h	/^    Callback writeHandler_;$/;"	m	class:Channel
+~Channel	Channel.cc	/^Channel::~Channel()$/;"	f	class:Channel
+~Epoller	Epoller.cc	/^Epoller::~Epoller()$/;"	f	class:Epoller
+~EventLoop	EventLoop.cc	/^EventLoop::~EventLoop()$/;"	f	class:EventLoop
+~EventLoopThread	EventLoopThread.cc	/^EventLoopThread::~EventLoopThread()$/;"	f	class:EventLoopThread
+~EventLoopThreadPool	EventLoopThreadPool.cc	/^EventLoopThreadPool::~EventLoopThreadPool()$/;"	f	class:EventLoopThreadPool
+~HttpServer	HttpServer.cc	/^HttpServer::~HttpServer()$/;"	f	class:HttpServer
+~HttpSession	HttpSession.cc	/^HttpSession::~HttpSession()$/;"	f	class:HttpSession
+~MutexLock	MutexLock.h	/^    ~MutexLock()$/;"	f	class:MutexLock
+~MutexLockGuard	MutexLock.h	/^    ~MutexLockGuard()$/;"	f	class:MutexLockGuard
+~Socket	Socket.cc	/^Socket::~Socket()$/;"	f	class:Socket
+~TcpConnection	TcpConnection.cc	/^TcpConnection::~TcpConnection()$/;"	f	class:TcpConnection
+~TcpServer	TcpServer.cc	/^TcpServer::~TcpServer()$/;"	f	class:TcpServer
+~Thread	Thread.cc	/^Thread::~Thread()$/;"	f	class:Thread
+~ThreadPool	ThreadPool.cc	/^ThreadPool::~ThreadPool()$/;"	f	class:ThreadPool

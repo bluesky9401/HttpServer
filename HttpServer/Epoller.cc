@@ -18,17 +18,16 @@
 #include "Epoller.h"
 
 #define EVENTNUM 4096 //最大触发事件数量
-#define TIMEOUT 1000 //epoll_wait 超时时间设置
 
 Epoller::Epoller(/* args */)
     : epollfd_(-1),
-    eventList_(EVENTNUM),
-    channelMap_()
+      eventList_(EVENTNUM),
+      channelMap_()
 {
     epollfd_ = epoll_create(256);
     if(epollfd_ == -1)
     {
-        perror("epoll_create1");
+        perror("epoll_create");
         exit(1);
     }
     std::cout << "epoll_create" << epollfd_ << std::endl;
@@ -39,12 +38,11 @@ Epoller::~Epoller()
     close(epollfd_);
 }
 
-//等待I/O事件
+// 等待I/O事件
 void Epoller::epoll(ChannelList &activeChannelList)
 {
-    int timeout = TIMEOUT;
     // 调用epoll_wait返回激活事件链表
-    int nfds = epoll_wait(epollfd_, &*eventList_.begin(), static_cast<int>(eventList_.size()), timeout);
+    int nfds = epoll_wait(epollfd_, &*eventList_.begin(), static_cast<int>(eventList_.size()), -1);
     if(nfds == -1)
     {
         printf("error code is:%d", errno);
@@ -110,7 +108,7 @@ void Epoller::removeChannel(SP_Channel spChannel)
         perror("epoll del error");
         exit(1);
     }
-    std::cout << "removechannel!" << std::endl;
+//    std::cout << "removechannel!" << std::endl;
 }
 
 //更新事件
