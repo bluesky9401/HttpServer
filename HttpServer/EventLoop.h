@@ -90,7 +90,9 @@ public:
         if (!isInLoopThread() || callingPendingFunctors_)
             wakeUp();// 跨线程唤醒
     }
-
+    
+    void setOnTimeCallback(int intervals, Callback &&callback);
+private:
     void executeTask()
     {
         std::vector<Functor> functorList;
@@ -105,12 +107,10 @@ public:
         }
         callingPendingFunctors_ = false;
     }
-private:
     void wakeUp();
     void handleRead();// 用于处理唤醒事件
     void handleError();
     void handleOnTime();
-    void setOnTimeCallback(int intervals, Callback &&callback);
     void startTimer();// 启动定时器
     void stopTimer();// 暂停定时器
     /* data */    

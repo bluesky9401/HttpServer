@@ -1,5 +1,5 @@
 /* author: chentongjie
- * date:
+ * last updated: 7-22, 2019
  * HttpServer类: 持有TcpServer类对象，并定义在新连接到来时所需进行的操作
  * 新建连接：void handleNewConnection(SP_TcpConnection spTcpConn);
  * 在新建连接到来时，负责创建一个HttpSession对象，然后向spTcpConn指向的TCP连接对象

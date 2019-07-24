@@ -1,5 +1,5 @@
 /* @author: chen tongjie
- * @date:
+ * @last updated: 7-23, 2019
  * @description--socket类，封装socket描述符及相关的初始化操作
  * 主要用于封装服务器socket的操作 
  * 同时也封装TCP连接Socket */
@@ -8,7 +8,7 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 
 class Socket
 {

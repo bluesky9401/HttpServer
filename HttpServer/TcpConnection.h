@@ -77,10 +77,11 @@ public:
         connectionCleanUp_ = cb;
     }
     // 更新TCP服务器上的时间轮回调函数
-    void setOnMessageCallback(const TaskCallback && cb)
+    void setIsActiveCallback(const TaskCallback && cb)
     {
-        onMessageCallback_ = cb;
+        isActiveCallback_ = cb;
     }
+    void checkWhetherActive();
     void forceClose();
 private:
     // TCP层的处理函数
@@ -99,6 +100,7 @@ private:
     struct sockaddr_in clientaddr_;
     bool halfClose_; // 半关闭标志位
     bool connected_; // 连接标志位
+    bool active_; // 当前连接是否活跃
     // 读写缓冲
     std::string bufferIn_;
     std::string bufferOut_;
@@ -111,6 +113,6 @@ private:
 
     // TCP服务器处理函数
     TaskCallback connectionCleanUp_;
-    TaskCallback onMessageCallback_;
+    TaskCallback isActiveCallback_;
 };
 #endif 

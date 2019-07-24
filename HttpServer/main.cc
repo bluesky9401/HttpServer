@@ -1,6 +1,6 @@
 /* author: chen tongjie
- * date:
- * HttpWebServer */
+ * last updated: 2019-7-21
+ * HttpServer */
 #include <iostream>
 #include <signal.h>
 #include "EventLoop.h"

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -9,7 +8,9 @@
 #include <cstring>
 #include "Socket.h"
 
-Socket::Socket(/* args */)
+// Socket()构造函数创建一个套接字
+// Socket(int fd)构造函数封装一个描述符为fd的套接字
+Socket::Socket()
 {
     closed_ = true;
     fd_ = socket(AF_INET, SOCK_STREAM, 0);

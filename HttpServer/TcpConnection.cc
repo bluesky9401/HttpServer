@@ -23,7 +23,8 @@ TcpConnection::TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clienta
 	  socket_(fd),
       clientaddr_(clientaddr),
 	  halfClose_(false),
-	  connected_(true)
+	  connected_(true),
+      active_(false)
 {
 	//创建事件注册器，并将事件登记到注册器上
     spChannel_ = std::make_shared<Channel>();
@@ -138,6 +139,7 @@ void TcpConnection::handleError()
 {
 	if(!connected_) return; 
 	connected_ = false;
+    active_ = false;
 	loop_->removeChannelFromEpoller(spChannel_);
 	errorCallback_();// 调用上层错误回调函数做错误处理工作
     // 通知服务器清理连接
@@ -152,9 +154,31 @@ void TcpConnection::handleClose()
 {
 	if (!connected_) { return; }
 	connected_ = false;
+    active_ = false;
     loop_->removeChannelFromEpoller(spChannel_);// 从epoller中清除注册信息
 	closeCallback_();// 上层处理连接关闭工作
 	connectionCleanUp_();
+}
+void TcpConnection::checkWhetherActive()
+{
+    if (loop_->isInLoopThread()) 
+    {
+        // 当前连接处于活跃状态
+        if (active_) 
+        {
+            isActiveCallback_();// 更新时间轮信息
+            active_ = false;
+        }
+        else
+        {
+            // 否则，强制关闭连接
+            forceClose();
+        }
+    }
+    else
+    {
+        loop_->addTask(std::bind(&TcpConnection::checkWhetherActive, shared_from_this()));
+    }
 }
 
 void TcpConnection::forceClose()
@@ -176,6 +200,7 @@ void TcpConnection::forceClose()
 }
 int TcpConnection::recvn(int fd, std::string &bufferIn)
 {
+    active_ = true;
     int nbyte = 0;
     int readSum = 0;
     char buffer[BUFSIZE];// 每次最多只读BUFSIZE个字节
@@ -183,7 +208,6 @@ int TcpConnection::recvn(int fd, std::string &bufferIn)
     {
         //nbyte = recv(fd, buffer, BUFSIZE, 0);
 		nbyte = read(fd, buffer, BUFSIZE);
-		onMessageCallback_();// 更新时间片
     	if (nbyte > 0)
 		{
             bufferIn.append(buffer, nbyte);//效率较低，2次拷贝
@@ -221,6 +245,7 @@ int TcpConnection::recvn(int fd, std::string &bufferIn)
 
 int TcpConnection::sendn(int fd, std::string &bufferOut)
 {
+    active_ = true;
 	ssize_t nbyte = 0;
 	size_t length = 0;
     // 获取当前bufferOut的数值
@@ -231,7 +256,6 @@ int TcpConnection::sendn(int fd, std::string &bufferOut)
     for (; ;) 
     {
 	    nbyte = write(fd, bufferOut.c_str(), length);
-        onMessageCallback_();// 更新时间片
 	    if (nbyte > 0)
     	{
 		    bufferOut.erase(0, nbyte);

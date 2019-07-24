@@ -1,5 +1,5 @@
 /* author: chentongjie
- * date:
+ * last updated: 7-23, 2019
  *
  * */
 #include <iostream>
@@ -7,7 +7,6 @@
 #include <fcntl.h> // set nonblocking
 #include <cstdlib>
 #include <netinet/in.h>
-// #include <arpa/inet.h>// net_ntoa() 
 #include "TcpServer.h"
 #include "Channel.h"
 #include "EventLoop.h"
@@ -84,20 +83,23 @@ void TcpServer::onNewConnection()
          */
         setNonblocking(clientfd);
         EventLoop *loop = eventLoopThreadPool_.getNextLoop();
-        SP_TcpConnection spTcpConnection = std::make_shared<TcpConnection>(loop, clientfd, clientaddr);// TcpConnection用于存放连接信息
-        SP_Entry spEntry(new Entry(spTcpConnection));
-        connectionBuckets_.back().insert(spEntry);
-        WP_Entry wpEntry(spEntry);
-        spTcpConnection->setOnMessageCallback(std::bind(&TcpServer::onMessage, this, wpEntry));
-
-        tcpList_[clientfd] = spTcpConnection;
-        newConnectionCallback_(spTcpConnection, loop);// HTTP层分配HttpSession块，并且将其与TcpConnection绑定
+        SP_TcpConnection spTcpConn = std::make_shared<TcpConnection>(loop, clientfd, clientaddr);// TcpConnection用于存放连接信息
+        if (!connectionBuckets_.empty())
+        {
+            SP_Entry spEntry(new Entry(spTcpConn));
+            connectionBuckets_.back().insert(spEntry);
+            WP_Entry wpEntry(spEntry);
+            spTcpConn->setIsActiveCallback(std::bind(&TcpServer::isActive, this, spTcpConn, wpEntry));
+        }
+    
+        tcpList_[clientfd] = spTcpConn;
+        newConnectionCallback_(spTcpConn, loop);// HTTP层分配HttpSession块，并且将其与TcpConnection绑定
         // 登记连接清理操作，在连接即将关闭或发生错误时，由IO线程推送连接清理任务至主线程
-        spTcpConnection->setConnectionCleanUp(std::bind(&TcpServer::connectionCleanUp, this, clientfd));
+        spTcpConn->setConnectionCleanUp(std::bind(&TcpServer::connectionCleanUp, this, clientfd));
         // Bug，应该把事件添加的操作放到最后,否则bug segement fault(在还没登记HTTP层处理回调函数前即读入数据)
         // 总之就是做好一切准备工作再添加事件到epoll！！！
         // 由TcpConnection向IO线程注册事件
-        spTcpConnection->addChannelToLoop();// 最后是将TcpConnection中的回调函数注册到epoller_
+        spTcpConn->addChannelToLoop();// 最后是将TcpConnection中的回调函数注册到epoller_
         ++ connCount_;
         cout << "Connections' number = " << connCount_ << endl;
     }
@@ -116,10 +118,10 @@ void TcpServer::connectionCleanUp(int fd)
     }
 }
 
+// 每秒计时会更新时间轮
 void TcpServer::onTime()
 {
-     loop_->assertInLoopThread();
-    cout << "1s trigger..." << endl;
+    loop_->assertInLoopThread();
     connectionBuckets_.push_back(Bucket());
 }
 /* 服务器端的等待连接套接字发生错误，会关闭套接字
@@ -129,20 +131,21 @@ void TcpServer::onConnectionError()
     std::cout << "UNKNOWN EVENT" << std::endl;
     serverSocket_.close();
 }
-
-void TcpServer::onMessage(WP_Entry wpEntry) 
+// 若Tcp连接处于活跃状态，在计时到达的时候调用重新更新TCP连接信息到时间轮
+void TcpServer::isActive(WP_TcpConnection wpTcpConn, WP_Entry wpEntry) 
 {
     if (loop_->isInLoopThread()) 
     {
-        SP_Entry spEntry(wpEntry.lock());
-        if (spEntry)
+        SP_TcpConnection spTcpConn = wpTcpConn.lock();
+        if (spTcpConn)
         {
+            SP_Entry spEntry(new Entry(spTcpConn));
             connectionBuckets_.back().insert(spEntry);
         }
     } 
     else 
     {
-        loop_->addTask(std::bind(&TcpServer::onMessage, this, wpEntry));
+        loop_->addTask(std::bind(&TcpServer::isActive, this, wpTcpConn, wpEntry));
     }
 }
 /* 设置套接字为非阻塞 */
