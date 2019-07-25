@@ -23,10 +23,7 @@
 #include <functional>
 #include <string>
 #include <memory>
-// #include <sys/types.h>
-// #include <sys/socket.h>
 #include <netinet/in.h>
-// #include <arpa/inet.h>
 #include "Socket.h"
 
 class HttpSession;
@@ -43,6 +40,7 @@ public:
     typedef std::function<void()> Callback;
     typedef std::function<void(std::string&)> HandleMessageCallback;// 上层Http业务处理函数
     typedef std::function<void()> TaskCallback;
+    typedef std::function<void(std::shared_ptr<TcpConnection>)> IsActiveCallback;
     
     TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clientaddr);
     ~TcpConnection();
@@ -51,7 +49,10 @@ public:
     { 
         return socket_.fd(); 
     }
-    
+    bool isConnect() const
+    {
+        return connected_;
+    }
     void addChannelToLoop();
 
     // 设置HTTP层回调函数
@@ -77,7 +78,7 @@ public:
         connectionCleanUp_ = cb;
     }
     // 更新TCP服务器上的时间轮回调函数
-    void setIsActiveCallback(const TaskCallback && cb)
+    void setIsActiveCallback(const IsActiveCallback && cb)
     {
         isActiveCallback_ = cb;
     }
@@ -113,6 +114,6 @@ private:
 
     // TCP服务器处理函数
     TaskCallback connectionCleanUp_;
-    TaskCallback isActiveCallback_;
+    IsActiveCallback isActiveCallback_;
 };
 #endif 

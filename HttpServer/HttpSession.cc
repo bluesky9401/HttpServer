@@ -97,7 +97,8 @@ void HttpSession::handleMessage(std::string &s)
     // 首先将TcpConnection上的输入缓冲区内容交换到HttpSession的输入缓冲区
     std::string str;
     str.swap(s);
-    if (str.empty()) {// 下层TCP连接接收到FIN
+    if (str.empty()) 
+    {   // 下层TCP连接接收到FIN
         if (mapHttpProcessContext_.empty() || !connected_) {
             SP_TcpConnection spTcpConn = wpTcpConn_.lock();
             if (spTcpConn) 

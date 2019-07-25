@@ -1,5 +1,5 @@
 /* author: chentongjie
- * last updated: 7-23, 2019
+ * last updated: 7-24, 2019
  * TcpServer持有一个EventLoopThreadPool线程池、accept套接字、EventLoop对象、serverChannel事件注册器
  * 作用：负责向所持有的EventLoop事件分发器登记等待连接事件，同时在连接到来时新建一个TcpConnection对象，
  *       并从EventLoopThreadPool线程池中捞出一个IO线程与该TcpConnection对象绑定, 然后往IO线程中推送连
@@ -14,11 +14,10 @@
 #include <functional>
 #include <memory>
 #include <map>
-#include <unordered_set>
-#include <boost/circular_buffer.hpp>
 #include "Socket.h"
 #include "EventLoopThreadPool.h"
 #include "TcpConnection.h"
+#include "TimeWheel.h"
 
 #define MAXCONNECTION 10000 // 允许的最大连接数
 
@@ -30,7 +29,6 @@ class TcpServer
 {
 public:
     typedef std::shared_ptr<TcpConnection> SP_TcpConnection;
-    typedef std::weak_ptr<TcpConnection> WP_TcpConnection;
     typedef std::shared_ptr<Channel> SP_Channel;
     typedef std::function<void(SP_TcpConnection, EventLoop*)> Callback;
 
@@ -50,31 +48,6 @@ private:
     void onConnectionError();
     // 连接到来处理工作
     void onNewConnection();
-
-    // 控制空闲连接是否关闭的条目。在其析构时，若当前连接还没有释放，则强制关闭连接。
-    struct Entry
-    {
-        explicit Entry(const WP_TcpConnection& wpConn)
-                : wpConn_(wpConn)
-        { }
-
-        ~Entry()
-        {
-            SP_TcpConnection spConn = wpConn_.lock();
-            if (spConn)
-            {
-                // 注意：此处将任务推至IO线程中运行
-                // 查询IO线程中该连接在[t0, t0+intervals]是否发送或接收过数据
-                spConn->checkWhetherActive();
-            }
-        }
-        WP_TcpConnection wpConn_;
-    };
-
-    typedef std::shared_ptr<Entry> SP_Entry;
-    typedef std::weak_ptr<Entry> WP_Entry;
-    typedef std::unordered_set<SP_Entry> Bucket;
-    typedef boost::circular_buffer<Bucket> WeakConnectionList;
     // data
     Socket serverSocket_;// TCP服务器的监听套接字
     EventLoop *loop_;// 所绑定的EventLoop
@@ -82,13 +55,15 @@ private:
     SP_Channel spServerChannel_;// 监听连接事件注册器
     std::map<int, SP_TcpConnection> tcpList_;// 记录TCP server上的当前连接，并控制TcpConnection资源块的释放
     int connCount_;
-    WeakConnectionList connectionBuckets_;
     // 业务接口函数(上层Http的处理业务回调函数)
     Callback newConnectionCallback_;
-    
+
+    TimeWheel timeWheel_;
+    bool removeIdleConnection_;
+     
     void onTime();
     // TCP连接发送信息或者接收数据时，更新时间轮中的数据
-    void isActive(WP_TcpConnection wpTcpConn, WP_Entry wpEntry);
+    void isActive(SP_TcpConnection spTcpConn);
 };
 
 #endif

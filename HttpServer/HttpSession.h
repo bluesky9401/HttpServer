@@ -35,7 +35,6 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <map>
 #include <vector>
 #include <queue>
 #include "ThreadPool.h"
@@ -52,9 +51,9 @@ struct HttpProcessContext {
 	std::string method;
 	std::string url;
 	std::string version;
-    bool keepAlive = false;
 	std::map<std::string, std::string> header;
 	std::string body;
+    bool keepAlive = false;
     bool success = false;// 标记报文是否成功处理
 };// 存放HTTP请求信息
 
@@ -70,7 +69,8 @@ public:
     ~HttpSession();
 
     /* HTTP层数据处理、读写事件处理与会话关闭或发生错误处理 
-     * 此处的会话关闭与发生错误均时由于下层Tcp导致 */
+     * 此处的会话关闭与发生错误均时由于下层Tcp导致 
+     * 注册至TCP连接 */
     void handleMessage(std::string &s);
     void handleSendComplete();
     void handleClose();

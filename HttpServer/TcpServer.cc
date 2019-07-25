@@ -11,6 +11,7 @@
 #include "Channel.h"
 #include "EventLoop.h"
 #include "TcpConnection.h"
+using namespace std::placeholders;
 using std::cin;
 using std::cout;
 using std::endl;
@@ -21,9 +22,10 @@ TcpServer::TcpServer(EventLoop *loop, int port, int threadNum, int idleSeconds)
     : serverSocket_(),
       loop_(loop),
       eventLoopThreadPool_(loop, threadNum),
-      connectionBuckets_(),
       spServerChannel_(new Channel()),
-      connCount_(0)
+      connCount_(0),
+      timeWheel_(idleSeconds),
+      removeIdleConnection_(idleSeconds > 0) 
 {
     serverSocket_.setReuseAddr();// 设置地址复用  
     serverSocket_.bindAddress(port);// 绑定端口
@@ -34,8 +36,6 @@ TcpServer::TcpServer(EventLoop *loop, int port, int threadNum, int idleSeconds)
     spServerChannel_->setFd(serverSocket_.fd());// 注册监听事件至serverChannel
     spServerChannel_->setReadHandle(std::bind(&TcpServer::onNewConnection, this));
     spServerChannel_->setErrorHandle(std::bind(&TcpServer::onConnectionError, this)); 
-    if (idleSeconds > 0) 
-        connectionBuckets_.resize(idleSeconds);
 }
 
 TcpServer::~TcpServer()
@@ -49,7 +49,7 @@ void TcpServer::start()
     spServerChannel_->setEvents(EPOLLIN | EPOLLET);// 设置监听套接字可读边沿触发
     loop_->addChannelToEpoller(spServerChannel_);// 将该感兴趣的事件添加到epoller_中
 
-    if (!connectionBuckets_.empty())
+    if (removeIdleConnection_)
         loop_->setOnTimeCallback(1, std::bind(&TcpServer::onTime, this));
 }
 
@@ -84,12 +84,10 @@ void TcpServer::onNewConnection()
         setNonblocking(clientfd);
         EventLoop *loop = eventLoopThreadPool_.getNextLoop();
         SP_TcpConnection spTcpConn = std::make_shared<TcpConnection>(loop, clientfd, clientaddr);// TcpConnection用于存放连接信息
-        if (!connectionBuckets_.empty())
+        if (removeIdleConnection_)
         {
-            SP_Entry spEntry(new Entry(spTcpConn));
-            connectionBuckets_.back().insert(spEntry);
-            WP_Entry wpEntry(spEntry);
-            spTcpConn->setIsActiveCallback(std::bind(&TcpServer::isActive, this, spTcpConn, wpEntry));
+            timeWheel_.addConnection(spTcpConn);
+            spTcpConn->setIsActiveCallback(std::bind(&TcpServer::isActive, this, _1));
         }
     
         tcpList_[clientfd] = spTcpConn;
@@ -122,7 +120,7 @@ void TcpServer::connectionCleanUp(int fd)
 void TcpServer::onTime()
 {
     loop_->assertInLoopThread();
-    connectionBuckets_.push_back(Bucket());
+    timeWheel_.rotateTimeWheel();
 }
 /* 服务器端的等待连接套接字发生错误，会关闭套接字
  * */
@@ -132,20 +130,18 @@ void TcpServer::onConnectionError()
     serverSocket_.close();
 }
 // 若Tcp连接处于活跃状态，在计时到达的时候调用重新更新TCP连接信息到时间轮
-void TcpServer::isActive(WP_TcpConnection wpTcpConn, WP_Entry wpEntry) 
+void TcpServer::isActive(SP_TcpConnection spTcpConn) 
 {
     if (loop_->isInLoopThread()) 
     {
-        SP_TcpConnection spTcpConn = wpTcpConn.lock();
-        if (spTcpConn)
+        if (spTcpConn->isConnect()) 
         {
-            SP_Entry spEntry(new Entry(spTcpConn));
-            connectionBuckets_.back().insert(spEntry);
+            timeWheel_.addConnection(spTcpConn);
         }
     } 
     else 
     {
-        loop_->addTask(std::bind(&TcpServer::isActive, this, wpTcpConn, wpEntry));
+        loop_->addTask(std::bind(&TcpServer::isActive, this, spTcpConn));
     }
 }
 /* 设置套接字为非阻塞 */

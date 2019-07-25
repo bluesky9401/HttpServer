@@ -166,7 +166,7 @@ void TcpConnection::checkWhetherActive()
         // 当前连接处于活跃状态
         if (active_) 
         {
-            isActiveCallback_();// 更新时间轮信息
+            isActiveCallback_(shared_from_this());// 更新时间轮信息
             active_ = false;
         }
         else
