@@ -68,18 +68,18 @@ void TcpServer::onNewConnection()
         
         if(connCount_+1 > MAXCONNECTION)// 若已创建连接大于所允许的最大连接数
         {
-            close(clientfd);
+            close(clientfd);// 关闭套接字，触发正常的TCP挥手序列。
             continue;
         }
         /* 上层连接建立步骤：
          * 1. 设置客户连接套接字为非阻塞
          * 2. 从IO线程池中选择合适的IO线程作为该连接的读写处理线程
          * 3. 分配TcpConnection资源块，并将该资源块与clientfd以及loop绑定
-         * 4. 创建Entry条目，用于控制空闲连接的释放
-         * 5. 在TcpConnection上设置更新时间轮的回调函数
+         * 4. 向时间轮添加该连接
+         * 5. 在TcpConnection上设置向时间轮插入连接的回调函数
          * 6. 调用上层新建连接处理函数(分配HttpSession资源块并绑定)
          * 7. 向TcpConnection登记TcpServer的连接清理回调函数
-         * 8. 最终，将该连接登记到IO线程的Epoll上
+         * 8. 最终，将该连接对应的事件注册器登记到IO线程的Epoll上
          */
         setNonblocking(clientfd);
         EventLoop *loop = eventLoopThreadPool_.getNextLoop();
@@ -108,6 +108,7 @@ void TcpServer::connectionCleanUp(int fd)
     if (loop_->isInLoopThread()) 
     {
         --connCount_;
+        // cout << "TcpConnection erase and connections Number = " << connCount_ << endl; 
         tcpList_.erase(fd);
     }
     else

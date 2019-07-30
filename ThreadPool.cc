@@ -56,7 +56,7 @@ void ThreadPool::Stop()
     condition_.notify_all();
 }
 
-void ThreadPool::addTask(Task task)
+int ThreadPool::addTask(Task task)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);

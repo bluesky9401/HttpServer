@@ -22,6 +22,11 @@ public:
     EventLoop* getLoop();
     pid_t getThreadId() const 
     { return tid_; }
+    void setName(std::string n)
+    {
+        name_ = n;
+        thread_.setName(name_);
+    }
     void start();
     void threadFunc();//线程真正执行的函数
 private:

@@ -1,5 +1,5 @@
 CC := g++
-CFLAGS := -Wall -O -g
+CFLAGS := -Wall -O -g -fstack-protector -fstack-protector-all
 TARGET := httpServer.out
 SOURCES := $(wildcard *.cc)
 OBJS := $(patsubst *.cc, *.o, $(SOURCES))

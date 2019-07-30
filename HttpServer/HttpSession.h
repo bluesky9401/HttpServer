@@ -27,8 +27,13 @@
 // Access-Control-Allow-Origin: *
 // Content-Encoding: gzip
 
-// 可能持有SP_HTTPSESSION的对象有：TcpConnection, 线程池, IO线程任务队列
-// 导致HTTP层会话关闭(不再接收下层数据以及往下传递数据)的情况有：HTTP层报文解析错误、下层TCP连接发生错误
+/* 可能持有SP_HTTPSESSION的对象有：TcpConnection, 线程池, IO线程任务队列 
+ * 导致HTTP层会话关闭(不再接收下层数据以及往下传递数据)的情况有:
+ * 1. HTTP层报文解析错误(往下传递差错报文后关闭)。
+ * 2. 下层TCP连接发生错误。
+ * 3. 接收到FIN分节，并且待处理报文全部完成。
+ * 4. TCP空闲连接被剔除
+ * */
 #ifndef _HTTP_SESSION_H_
 #define _HTTP_SESSION_H_
 
@@ -44,18 +49,24 @@ extern ThreadPool *pThreadPool;
 class TcpConnection;
 class EventLoop;
 
+enum Method {
+    GET = 0,
+    POST,
+    OTHER
+};
+
 struct HttpProcessContext {
-    int id;
+    int id;// 当前处理报文的ID，主要是用于服务端顺序返回响应报文
     std::string requestContext;// 待解析的请求报文
     std::string responseContext;// 待发送响应报文
 	std::string method;
 	std::string url;
 	std::string version;
-	std::map<std::string, std::string> header;
+	std::unordered_map<std::string, std::string> header;
 	std::string body;
     bool keepAlive = false;
     bool success = false;// 标记报文是否成功处理
-};// 存放HTTP请求信息
+};// 处理报文
 
 class HttpSession : public std::enable_shared_from_this<HttpSession>
 {
@@ -74,6 +85,7 @@ public:
     void handleMessage(std::string &s);
     void handleSendComplete();
     void handleClose();
+    void handleHalfClose();
     void handleError();
 
     void handleMessageTask(SP_HttpProcessContext spProContext);
@@ -100,11 +112,12 @@ private:
     
     EventLoop *loop_;
     std::string recvMsg_;// 从缓冲区接收的报文
-    // 此为当前待处理报文
+    // 此为当前待处理报文--与用map相比，用unordered_map后吞吐率上升了5%左右,内存使用略微下降
     std::unordered_map<int, SP_HttpProcessContext> mapHttpProcessContext_;
     SP_HttpProcessContext spCurrPro_; // 指向当前正在处理的报文
+    // 小顶堆，维护当前准备好的响应报文的最小ID号
     std::priority_queue<int, std::vector<int>, std::greater<int>> prepareContext_;
-    std::string currMethod_; // 当前正在分离的请求报文类型
+    Method currMethod_; // 当前正在分离的请求报文类型
     bool completed_;// 用于标记当前报文是否完整
     size_type remain_;// 用于记录POST请求还剩余多少数据未读
     size_type crlfcrlfPos_;// 记录“\r\n\r\n”的接收位置
@@ -112,6 +125,7 @@ private:
     int sendId_;// 下一个待发送的报文ID
     bool keepAlive_;
     bool connected_ = true;// 标记当前会话是否关闭
+    bool halfClose_ = false;
     WP_TcpConnection wpTcpConn_;// 此处持有WP_TcpConnection指针
 };
 #endif

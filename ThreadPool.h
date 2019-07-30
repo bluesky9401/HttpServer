@@ -42,7 +42,7 @@ public:
 
     void start();
     void Stop();
-    void addTask(Task task);
+    int addTask(Task task);
     void ThreadFunc();
     int getThreadNum()
     { return threadnum_; }

@@ -38,6 +38,7 @@ void HttpServer::handleNewConnection(SP_TcpConnection spTcpConn, EventLoop *loop
     spTcpConn->setHandleMessageCallback(std::bind(&HttpSession::handleMessage, spHttpSession, _1));
     spTcpConn->setSendCompleteCallback(std::bind(&HttpSession::handleSendComplete, spHttpSession));
     spTcpConn->setCloseCallback(std::bind(&HttpSession::handleClose, spHttpSession));
+    spTcpConn->setHalfCloseCallback(std::bind(&HttpSession::handleHalfClose, spHttpSession));
     spTcpConn->setErrorCallback(std::bind(&HttpSession::handleError, spHttpSession));
 }
 

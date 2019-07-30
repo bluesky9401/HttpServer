@@ -17,7 +17,11 @@ public:
 
     explicit Thread(const ThreadFunc&, const std::string name = "Thread");
     ~Thread();
-
+    
+    void setName(std::string n)
+    {
+        name_ = n;
+    }
     void start();// 开始(创建一个线程并且运行线程函数)
     int join();// 用于主线程等待子线程的结束
     bool started() const { return started_; }// 返回线程的运行状态

@@ -2,13 +2,14 @@
 #include <iostream>
 #include <sys/epoll.h>
 #include "Channel.h"
-
+using std::cout;
+using std::endl;
 Channel::Channel()
 { }
 
 Channel::~Channel()
 {
-    std::cout << "free Channel" << std::endl;   
+//    std::cout << "free Channel" << std::endl;   
 }
 
 void Channel::handleEvent()
@@ -25,10 +26,9 @@ void Channel::handleEvent()
         revents_ &= ~(EPOLLIN | EPOLLPRI);
         readHandler_();
     }
-    else if(events_ & EPOLLOUT)//写事件
+    else if(revents_ & EPOLLOUT)//写事件
     {
         revents_ &= ~EPOLLOUT;
-     //   std::cout << "Event EPOLLOUT" << std::endl;
         writeHandler_();
     }
     else

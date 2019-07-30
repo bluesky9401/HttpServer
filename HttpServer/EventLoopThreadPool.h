@@ -22,7 +22,7 @@ private:
     EventLoop *mainLoop_;
     int threadNum_;
     int index_;
-    std::vector<EventLoopThread*> threadList_;
+    std::vector<EventLoopThread> threadList_;
 };
 
 #endif

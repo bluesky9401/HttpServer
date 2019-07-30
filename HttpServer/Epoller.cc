@@ -15,11 +15,15 @@
 #include <cstdlib> //exit
 #include <unistd.h> //close
 #include <errno.h>
+#include <cstring>
 #include "Epoller.h"
-
+using std::cout;
+using std::cin;
+using std::endl;
 #define EVENTNUM 4096 //最大触发事件数量
+epoll_event init;
 
-Epoller::Epoller(/* args */)
+Epoller::Epoller()
     : epollfd_(-1),
       eventList_(EVENTNUM),
       channelMap_()
@@ -41,22 +45,19 @@ Epoller::~Epoller()
 // 等待I/O事件
 void Epoller::epoll(ChannelList &activeChannelList)
 {
-    // 调用epoll_wait返回激活事件链表
     int nfds = epoll_wait(epollfd_, &*eventList_.begin(), static_cast<int>(eventList_.size()), -1);
+    
     if(nfds == -1)
     {
         printf("error code is:%d", errno);
         perror("epoll wait error");
-        //exit(1);
+        //exit(1)
     }
-    //printf("event num:%d\n", nfds);
-    //std::cout << "event num:" << nfds << "\n";// << std::endl;
     for(int i = 0; i < nfds; ++i)
     {
         int events = eventList_[i].events;
         int fd = eventList_[i].data.fd;
         auto iter = channelMap_.find(fd);
-
         if(iter != channelMap_.end())
         {
             SP_Channel spChannel = channelMap_[fd];
@@ -74,7 +75,6 @@ void Epoller::epoll(ChannelList &activeChannelList)
         std::cout << "resize:" << nfds << std::endl;
         eventList_.resize(nfds * 2);
     }
-    //eventlist_.clear();
 }
 
 //添加事件
@@ -82,6 +82,7 @@ void Epoller::addChannel(SP_Channel spChannel)
 {
     int fd = spChannel->getFd();
     struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
     ev.events = spChannel->getEvents();
     //data是联合体
     ev.data.fd = fd;
@@ -99,6 +100,7 @@ void Epoller::removeChannel(SP_Channel spChannel)
 {
     int fd = spChannel->getFd();
     struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
     ev.events = spChannel->getEvents();
     ev.data.fd = fd;
     channelMap_.erase(fd);// 从映射表中删除对应元素    
@@ -108,7 +110,6 @@ void Epoller::removeChannel(SP_Channel spChannel)
         perror("epoll del error");
         exit(1);
     }
-//    std::cout << "removechannel!" << std::endl;
 }
 
 //更新事件
@@ -116,6 +117,7 @@ void Epoller::updateChannel(SP_Channel spChannel)
 {
     int fd = spChannel->getFd();
     struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
     ev.events = spChannel->getEvents();
     ev.data.fd = fd;
 
@@ -124,6 +126,5 @@ void Epoller::updateChannel(SP_Channel spChannel)
         perror("epoll update error");
         exit(1);
     }
-    //std::cout << "updatechannel!" << std::endl;
 }
 

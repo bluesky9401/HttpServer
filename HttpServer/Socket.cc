@@ -27,7 +27,7 @@ Socket::~Socket()
 {
     if (!closed_) {
         ::close(fd_);
-//        std::cout << "Socket close..." << std::endl;
+//        std::cout << "Socket: " << fd_ << "close..." << std::endl;
     }
 }
 

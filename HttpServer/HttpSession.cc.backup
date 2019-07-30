@@ -54,11 +54,7 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
-#include <string>
-using std::string;
-#include <cstring>
-#include <exception>
-using std::logic_error;
+#include <string.h>
 #include "HttpSession.h"
 #include "TcpConnection.h"
 #include "EventLoop.h"
@@ -74,7 +70,7 @@ HttpSession::HttpSession(SP_TcpConnection spTcpConn, EventLoop *loop)
       currMethod_(),
       completed_(false),
       remain_(0),
-      crlfcrlfPos_(string::npos),
+      crlfcrlfPos_(std::string::npos),
       requestCount_(0),
       sendId_(1),
       keepAlive_(false),
@@ -90,7 +86,7 @@ HttpSession::HttpSession(SP_TcpConnection spTcpConn, EventLoop *loop)
 HttpSession::~HttpSession()
 {
     // 打印日志
-    // cout << "call HttpSeesion destructor" << endl;
+    cout << "call HttpSeesion destructor" << endl;
 }
 
 /* 处理消息的方式
@@ -98,28 +94,15 @@ HttpSession::~HttpSession()
  * 注意: 此函数在IO线程中运行 */
 void HttpSession::handleMessage(std::string &s)
 {
-    string str;
+    // 首先将TcpConnection上的输入缓冲区内容交换到HttpSession的输入缓冲区
+    std::string str;
     str.swap(s);
-    // 用于防止在执行该函数期间HttpSession资源块被释放。
-    std::shared_ptr<HttpSession> guard = shared_from_this();
-
-    // 若当前Http会话关闭，则将接收到的信息丢弃并返回
-    if (!connected_) 
-    {
-        std::cout << "Http session closed!" << std::endl;
-        return;
-    }
-
     if (str.empty()) 
-    {   // 下层TCP连接接收到FIN(只从TCP缓冲区中提取单独的文件结束符)
-        if (mapHttpProcessContext_.empty()) 
-        {
-            connected_ = false;// 关闭HTTP层
+    {   // 下层TCP连接接收到FIN
+        if (mapHttpProcessContext_.empty() || !connected_) {
             SP_TcpConnection spTcpConn = wpTcpConn_.lock();
             if (spTcpConn) 
             {
-                // HTTP层工作已完成，TCP层可在发送完数据后关闭。
-                spTcpConn->notifyHttpClosed();
                 spTcpConn->handleClose();
             }
             else
@@ -129,35 +112,42 @@ void HttpSession::handleMessage(std::string &s)
         }
         return;
     }
-    
-    // 把数据加入到HTTP层的缓冲区
+
+    // 若当前Http会话关闭，则将接收到的信息丢弃并返回
+    if (!connected_) 
+    {
+        std::cout << "Http session closed!" << std::endl;
+        return;
+    }
+
     if (recvMsg_.empty())
         recvMsg_.swap(str);
     else
         recvMsg_.append(str);
         
-    if (!spCurrPro_) 
+    if (!spCurrPro_) // 若当前没有正在分离的报文
         crlfcrlfPos_ = recvMsg_.find("\r\n\r\n");
-
+    
     // 注意：若当前spCurrPro_非空并且crlfcrlfPos_==std::string::npos
-    //       则将recvMsg_中至多remain_个字节的数据附加到spCurrPro指
-    //       向的HttpProcessContext
-    while (connected_ && recvMsg_.size() > 0 && (crlfcrlfPos_ != string::npos || spCurrPro_))
+    //       则将recvMsg_中的至多remain_个字节的数据附加到spCurrPro指
+    //       向的HttpProcessContext中
+    while ((crlfcrlfPos_ != std::string::npos || spCurrPro_)
+            && recvMsg_.size() > 0)
     {
         if (parseRcvMsg() != 0)// 分离报文出错
         {
             std::cout << "pareRcvMsg error!" << std::endl; 
             if(spCurrPro_) 
             {
-                // 将差错响应报文压入准备响应队列
                 prepareContext_.push(spCurrPro_->id);
-                addToBuf();// 向客户端发送报文 
-                crlfcrlfPos_ = string::npos;
+                addToBuf();// 向客户端发送错误报文 
+                crlfcrlfPos_ = std::string::npos;
                 spCurrPro_.reset();// 释放资源
+                recvMsg_.clear();// 清空缓冲区
             }
             else
             {
-                ;
+               recvMsg_.clear();
             }
             break;
         }
@@ -178,61 +168,56 @@ void HttpSession::handleMessage(std::string &s)
             {
                 handleMessageTask(spCurrPro_);
             }
+            
             crlfcrlfPos_ = recvMsg_.find("\r\n\r\n");// 重置
             spCurrPro_.reset();
             completed_ = false;
         }
         else if (spCurrPro_ && !completed_)// 接收到POST报文，且不完整
         {
-            crlfcrlfPos_ = string::npos;
+            crlfcrlfPos_ = std::string::npos;
         }
         else
         {
             // 出现错误(不可能执行到此处)
-            cout << "handle message error-- parseRcvMsg_() error" << endl;
+            std::cout << "handle message error-- parseRcvMsg_() error" << std::endl;
             recvMsg_.clear();
+            connected_ = false;// 关闭会话
             return;
         }
     }
 }
 
-/* 分离从TCP层传来的数据：每次最多分离出一个报文
- * 只有在当前接收缓冲区recvMsg_中找到“\r\n\r\n”或当前正在处理
- * 不完整的POST报文才有可能调用parseRcvMsg()
- * */
+/* 分解从TCP层传来的数据 
+ * 每次最多分离出一个报文 */
 int HttpSession::parseRcvMsg()
 {
     if (!spCurrPro_)// 新报文
     {
-        // 新建一个处理报文对象，当前crlfcrlfPos_ != std::string::npos
+        // 新建一个处理报文对象
         ++requestCount_;
         SP_HttpProcessContext spProcessContext = std::make_shared<HttpProcessContext>();
         mapHttpProcessContext_[requestCount_] = spProcessContext;
+        
         spCurrPro_ = spProcessContext;
         spCurrPro_->id = requestCount_;
-
+        // 接收到的缓存数据中存在"\r\n\r\n"字符串
         // 分离命令
-        size_type methodPos = recvMsg_.find(string(" "));
+        size_type methodPos = recvMsg_.find(" ");
         std::string method = recvMsg_.substr(0, methodPos);
-
-        if (method == "GET")
-            currMethod_ = GET;
-        else if (method == "POST")
-            currMethod_ = POST;
-        else
-            currMethod_ = OTHER;
+        currMethod_ = method;
 
         // 目前只支持GET和POST请求
-        if (currMethod_ == OTHER)
+        if (method != std::string("GET") && method != std::string("POST"))
         {
             std::cout << "HttpSession::parseRcvMsg--don't support method " 
                       << method << std::endl;
             httpError(501, "Method Not Implemented", spCurrPro_);
             return -1;
         }
-    
+
         // 若请求报文为GET(GET请求报文肯定完整)
-        if (currMethod_ == GET)
+        if (method == std::string("GET"))
         {
             if (crlfcrlfPos_+4 == recvMsg_.size()) // 若缓冲区刚好是一个请求报文
             {
@@ -241,7 +226,7 @@ int HttpSession::parseRcvMsg()
             } 
             else // 当前缓冲区有多于一个报文
             {
-                string str = recvMsg_.substr(0, crlfcrlfPos_ + 4);
+                std::string str = recvMsg_.substr(0, crlfcrlfPos_ + 4);
                 recvMsg_ = recvMsg_.substr(crlfcrlfPos_ + 4);
                 spCurrPro_->requestContext.swap(str);
                 completed_ = true;
@@ -250,39 +235,27 @@ int HttpSession::parseRcvMsg()
         }
 
         // 当前请求报文为POST类型
-        if (currMethod_ == POST)
+        if (method == std::string("POST"))
         {
-            size_type conLen_pos= recvMsg_.find(string("Content-Length"));
-            if (conLen_pos == std::string::npos)
+            size_t conLen_pos= recvMsg_.find("Content-Length");
+            if ( conLen_pos == std::string::npos)
             {
-                cout << "HttpSession::parseRecvMsg--POST request context without Content-Length" 
-                     << endl;
+                std::cout << "HttpSession::parseRecvMsg--POST request context without Content-Length" 
+                          << std::endl;
                 httpError(400, "Bad request!", spCurrPro_);
                 return -1;
             }
-
             // 查找Content-Length的结束尾部
-            size_type crlf_pos = recvMsg_.find(string("\r\n"), conLen_pos);// 从conLen_pos位置起寻找第一个“\r\n”
-            string bodyLengthStr = recvMsg_.substr(conLen_pos+16, crlf_pos-conLen_pos-16);
+            size_t crlf_pos = recvMsg_.find("\r\n", conLen_pos);// 从conLen_pos位置起寻找第一个“\r\n”
+            std::string bodyLengthStr = recvMsg_.substr(conLen_pos+16, crlf_pos-conLen_pos-16);
             // 将bodyLength转换为数值
-            int bodyLength = 0;
-            try 
-            {
-                bodyLength = stoi(bodyLengthStr);
-            } 
-            catch (logic_error &e) 
-            {
-                // 数值解析错误
-                cout << "The value of Content-Length is wrong!" << endl;
-                httpError(400, "Bad request: The format of content length is wrong!", spCurrPro_);
-                return -1;
-            }
+            auto bodyLength = stoll(bodyLengthStr);
 
             auto resDataNum = recvMsg_.size() - (crlfcrlfPos_+4);
 
-            if (bodyLength <= resDataNum)// 若缓冲区中携带完整POST报文
+            if (bodyLength <= resDataNum)// 若请求报文携带数据完整
             {
-                string str = recvMsg_.substr(0, crlfcrlfPos_ + 4 + bodyLength);
+                std::string str = recvMsg_.substr(0, crlfcrlfPos_ + 4 + bodyLength);
                 recvMsg_ = recvMsg_.substr(crlfcrlfPos_ + 4 + bodyLength);
                 spCurrPro_->requestContext.swap(str);
                 remain_ = 0;
@@ -290,7 +263,7 @@ int HttpSession::parseRcvMsg()
             } 
             else// 请求报文携带数据不完整
             {
-                (spCurrPro_->requestContext).swap(recvMsg_);
+                spCurrPro_->requestContext.swap(recvMsg_);
                 remain_ = bodyLength - resDataNum;
                 completed_ = false;
             }
@@ -301,17 +274,17 @@ int HttpSession::parseRcvMsg()
     {
         if (remain_ <= recvMsg_.size()) 
         {
-            string str = recvMsg_.substr(0, remain_);
-            (spCurrPro_->requestContext).append(str);
+            std::string str = recvMsg_.substr(0, remain_);
+            spCurrPro_->requestContext += str;
             recvMsg_ = recvMsg_.substr(remain_);
             completed_ = true;
             remain_ = 0;
         } 
         else
         { 
-            (spCurrPro_->requestContext).append(recvMsg_);
-            remain_-=recvMsg_.size();
+            spCurrPro_->requestContext += recvMsg_;
             recvMsg_.clear();
+            remain_-=recvMsg_.size();
         }
         return 0;
     }
@@ -337,9 +310,49 @@ void HttpSession::handleMessageTask(SP_HttpProcessContext spProContext)
     }    
 }
 
+
+/* 发送完成时HTTP层的处理工作
+ * 打印日志的操作交由主线程进行 */
+void HttpSession::handleSendComplete()
+{
+    // 打印发送完成日志
+    // 查看当前HttpSession与TcpConnection的状态
+    // 若TcpConnection处于halfclosed状态,并且当前会话工作完成后执行关闭操作
+    SP_TcpConnection spTcpConn = wpTcpConn_.lock();
+    if (spTcpConn) 
+    {
+        if (spTcpConn->halfClose_ && (mapHttpProcessContext_.empty() || !connected_)) 
+        {
+            spTcpConn->handleClose();
+        }
+    } 
+    else 
+    {
+        connected_ = false;
+        cout << "handleSendComplete: TcpConnection has closed!" << endl;
+    }
+}
+
+/* 连接关闭时HTTP层的处理工作 
+ * HTTP层连接关闭时主要进行资源释放操作
+ * */
+void HttpSession::handleClose()
+{
+    connected_ = false;
+    // 打印TcpConnection连接关闭信息
+}
+
+/* 底层TCP连接发生错误时，HTTP层处理工作 
+ * 关闭当前HTTP层会话 */
+void HttpSession::handleError()
+{
+    connected_ = false;
+    // 打印出错信息
+}
+
 void HttpSession::parseHttpRequest(SP_HttpProcessContext spProContext)
 {
-    std::string msg;
+    std::string msg;// 由于parseHttpRequest有可能在工作线程中执行，因此
     msg.swap(spProContext->requestContext);
 	std::string crlf("\r\n"), crlfcrlf("\r\n\r\n");
 	size_type prev = 0, next = 0, posColon;
@@ -439,7 +452,7 @@ void HttpSession::httpProcess(SP_HttpProcessContext spProContext)
         }
         responseContext += "Content-Length: " + std::to_string(responseBody.size()) + "\r\n";// 存放响应报文的大小
         responseContext += "\r\n";// 首部结束，下面是响应报文的主体
-        responseContext.append(responseBody);
+        responseContext += responseBody;
         spProContext -> success = true;
         return;
     }
@@ -478,7 +491,6 @@ void HttpSession::httpProcess(SP_HttpProcessContext spProContext)
             std::cout << "error fread" << std::endl;
             httpError(404, "Not Found", spProContext);
             spProContext->success = false;
-            fclose(fp);
             return;
         }        	
         fclose(fp);
@@ -503,6 +515,11 @@ void HttpSession::httpProcess(SP_HttpProcessContext spProContext)
 
 void HttpSession::notifyIoThreadDataPrepare(SP_HttpProcessContext spProContext)
 {
+    // 可能导致connected_置为关闭的情况有两种：
+    // 1. 底层Tcp连接关闭或出错，开始释放连接，但是工作线程中可能还存
+    //    在未完成的任务，故此不能直接释放资源，因此应用connected_标记
+    //    当前会话已关闭，等待工作线程中的任务完成后才开始释放资源
+    // 2. HTTP层解析错误
     prepareContext_.push(spProContext->id);
     keepAlive_ = spProContext->keepAlive;
     addToBuf();
@@ -520,57 +537,19 @@ void HttpSession::addToBuf()
         {
             sendContext = mapHttpProcessContext_[sendId_];
             tmp.append(sendContext->responseContext);
-            // http 1.0报文或者HTTP层解析出错会导致HTTP层关闭
             if (!keepAlive() || !sendContext->success) 
-            {
-                halfClose_ = true;
                 connected_ = false;
-            }
         }
         mapHttpProcessContext_.erase(sendId_);
         prepareContext_.pop();
         ++sendId_;
     }
 
-    // 若当前连接为半关闭，并且处理待处理报文为空，则可关闭连接
-    if (halfClose_ && mapHttpProcessContext_.empty())
-        connected_ = false;
-
     if (!tmp.empty() && spTcpConn) 
     {
-        if (!connected_) 
-            spTcpConn->notifyHttpClosed();
         spTcpConn->bufferOut_.append(sendContext->responseContext);
         spTcpConn->send();
     }
-}
-
-/* 发送完成时HTTP层的处理工作
- * 打印日志的操作交由主线程进行 */
-void HttpSession::handleSendComplete()
-{
-    // 打印发送完成日志
-}
-
-/* 发生在TCP服务器强制关闭连接
- * HTTP层连接关闭时主要进行资源释放操作
- * */
-void HttpSession::handleClose()
-{
-    connected_ = false;
-}
-
-// 发生在TCP连接接收到FIN分节
-void HttpSession::handleHalfClose()
-{
-    halfClose_ = true;
-}
-
-/* 底层TCP连接发生错误时，HTTP层处理工作 
- * 关闭当前HTTP层会话 */
-void HttpSession::handleError()
-{
-    connected_ = false;
 }
 
 // 报文处理出错所调用的函数
