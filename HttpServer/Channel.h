@@ -69,10 +69,14 @@ public:
     {
         closeHandler_ = cb;
     }
-
+    void notifyFreed()
+    {
+        freed_ = true;
+    }
 private:
     /* data */
     int fd_;
+    bool freed_;// 用于标记回调函数的资源块是否被释放，防止在使用无效指针
     event_t events_;// Channel希望注册到epoll的事件 
     event_t revents_;// epoll返回的激活事件
 

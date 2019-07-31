@@ -20,6 +20,7 @@ using std::endl;
 
 TcpConnection::TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clientaddr)
     : loop_(loop),
+      spChannel_(new Channel()),
 	  socket_(fd),
       clientaddr_(clientaddr),
 	  halfClose_(false),
@@ -27,8 +28,7 @@ TcpConnection::TcpConnection(EventLoop *loop, int fd, struct sockaddr_in clienta
       active_(false),
       httpClosed_(false)
 {
-	//创建事件注册器，并将事件登记到注册器上
-    spChannel_ = std::make_shared<Channel>();
+    //创建事件注册器，并将事件登记到注册器上
     spChannel_->setFd(fd);
     spChannel_->setEvents(EPOLLIN | EPOLLET);
     spChannel_->setReadHandle(std::bind(&TcpConnection::handleRead, this));
@@ -41,6 +41,7 @@ TcpConnection::~TcpConnection()
 {
     // 打印日志
     // cout << "call TcpConnection destructor! " << socket_.fd() << endl;
+    spChannel_->notifyFreed();
 }
 
 void TcpConnection::addChannelToLoop()
@@ -48,7 +49,6 @@ void TcpConnection::addChannelToLoop()
     // 主线程通过任务队列通知IO线程注册TcpConnection连接
 	loop_->addTask(std::bind(&EventLoop::addChannelToEpoller, loop_, spChannel_));
 }
-
 void TcpConnection::send()
 {
     if (connected_)
@@ -225,7 +225,14 @@ int TcpConnection::recvn(int fd, std::string &bufferIn)
 		{
             bufferIn.append(buffer, nbyte);//效率较低，2次拷贝
             readSum += nbyte;
-            continue;// 为了避免漏读文件结尾，需要read到出现EAGAIN错误
+            if (nbyte < BUFSIZE) 
+            {
+                return readSum;
+            } 
+            else
+            {
+                continue;// 为了避免漏读文件结尾，需要read到出现EAGAIN错误
+            }
 		}
 		else if (nbyte < 0)//异常
 		{

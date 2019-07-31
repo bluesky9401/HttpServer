@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h> // set nonblocking
 #include <cstdlib>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include "TcpServer.h"
 #include "Channel.h"
@@ -45,6 +46,7 @@ TcpServer::~TcpServer()
 
 void TcpServer::start()
 {
+    cout << "TcpServer start..." << endl;
     eventLoopThreadPool_.start();// 启动eventLoop线程池(用作IO线程)
     spServerChannel_->setEvents(EPOLLIN | EPOLLET);// 设置监听套接字可读边沿触发
     loop_->addChannelToEpoller(spServerChannel_);// 将该感兴趣的事件添加到epoller_中
@@ -63,7 +65,7 @@ void TcpServer::onNewConnection()
     int clientfd;
     while( (clientfd = serverSocket_.accept(clientaddr)) > 0) 
     {
-        //std::cout << "New client from IP:" << inet_ntoa(clientaddr.sin_addr) 
+        // std::cout << "New client from IP:" << inet_ntoa(clientaddr.sin_addr) 
         //    << ":" << ntohs(clientaddr.sin_port) << std::endl;
         
         if(connCount_+1 > MAXCONNECTION)// 若已创建连接大于所允许的最大连接数

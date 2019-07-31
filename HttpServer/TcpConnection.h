@@ -10,13 +10,16 @@
  * 3. 上层Http解析错误，强制关闭连接
  * 4. 连接超时，强制关闭连接
  * 情况1关闭步骤：若read()返回0，表明接收到FIN，连接状态halfClose_置为true，并通知HTTP层状态变为halfClose.
- *                服务端调用handleClose()情况有两种：一种是在TCP层发送完成后调用HTTP层的sendCompleteCallback回调函数，若当前
- *                HTTP层正在处理的报文为空或HTTP层会话关闭(表明不会再接收下层数据或向下层传递数据)，
- *                则可调用handleClose()关闭连接；另一种情况是recvn操作仅接收到一个文件结束符，因此会向
- *                HTTP层传递一个空字符串，若当前HTTP层处理报文为空或会话关闭，即调用handleClose()关闭连接。
+ *                服务端调用handleClose()情况有两种：一种与数据一起到达缓冲区，在HTTP层处理完成后，并且HTTP
+ *                层当前工作处理完毕关闭，会通知TCP层HTTP层关闭，然后在发送缓冲区的数据发送完成后关闭连接; 
+ *                另一种情况是recvn操作仅接收到一个文件结束符，因此会向HTTP层传递一个空字符串，若当前HTTP层
+ *                未关闭并且处理报文为空，即调用handleClose()关闭连接，若当前HTTP层还有剩余工作未处理，由于
+ *                设置了halfclose位，在工作完成后，执行关闭操作并通知TCP层，然后在发送缓冲区数据发送完毕时
+ *                关闭连接。
  * 情况2关闭步骤：连接发生错误，例如接收到对端发送的RST报文，则调用HTTP层errorCallback回调函数关闭HTTP层会话，
- *                然后直接调用handleClose()关闭连接。
- * 情况4关闭步骤：直接调用forceClose()函数主动关闭
+ *                然后直接调用forceClose()关闭连接。
+ * 情况3关闭步骤：HTTP层解析错误，关闭HTTP层并通知TCP层，然后在发送完差错报文后关闭连接。
+ * 情况4关闭步骤：直接调用forceClose()函数主动关闭。
  * */
 #ifndef _TCP_CONNECTION_H_
 #define _TCP_CONNECTION_H_
@@ -59,6 +62,7 @@ public:
     {
         httpClosed_ = true;
     }
+
     // 设置HTTP层回调函数
     void setHandleMessageCallback(const HandleMessageCallback &&cb)
     {

@@ -460,7 +460,7 @@ void HttpSession::httpProcess(SP_HttpProcessContext spProContext)
         return;
     }
     else
-    {
+    {   
         char buffer[4096];
         memset(buffer, 0, sizeof(buffer));
         // 读取文件中的信息至缓冲区,每次至多读取sizeof(buffer)个字节
