@@ -225,14 +225,7 @@ int TcpConnection::recvn(int fd, std::string &bufferIn)
 		{
             bufferIn.append(buffer, nbyte);//效率较低，2次拷贝
             readSum += nbyte;
-            if (nbyte < BUFSIZE) 
-            {
-                return readSum;
-            } 
-            else
-            {
-                continue;// 为了避免漏读文件结尾，需要read到出现EAGAIN错误
-            }
+            continue;// 为了避免漏读文件结尾，需要read到出现EAGAIN错误
 		}
 		else if (nbyte < 0)//异常
 		{
