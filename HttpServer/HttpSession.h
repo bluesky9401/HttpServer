@@ -54,7 +54,21 @@ enum Method {
     POST,
     OTHER
 };
+enum ParseRequestLineState {
+    PARSE_METHOD = 0,
+    PARSE_URI,
+    PARSE_VERSION,
+    PARSE_SUCCESS,
+    PARSE_ERROR
+};
 
+enum ParseRequestHeaderState {
+    H_KEY = 0,
+    H_VALUE,
+    H_SUCCESS,
+    H_END,
+    H_ERROR
+};
 struct HttpProcessContext {
     int id;// 当前处理报文的ID，主要是用于服务端顺序返回响应报文
     std::string requestContext;// 待解析的请求报文
@@ -95,8 +109,13 @@ private:
     /* 分离接收缓冲区的报文 */
     int parseRcvMsg();
 
+    /* 应用状态解析请求报文 */
+    int parseRequestLine(SP_HttpProcessContext spProContext);
+    int parseRequestHeader(SP_HttpProcessContext spProContext);
+    int parseRequestBody(SP_HttpProcessContext spProContext);
+
     /* 解析HTTP请求报文 */
-    void parseHttpRequest(SP_HttpProcessContext spProContext);
+    int parseHttpRequest(SP_HttpProcessContext spProContext);
 
     /* 根据解析后的报文构建HTTP响应报文 */
     void httpProcess(SP_HttpProcessContext spProContext);

@@ -54,8 +54,11 @@
 #include <memory>
 #include <iostream>
 #include <sstream>
+using std::stringstream;
 #include <string>
 using std::string;
+#include <unordered_map>
+using std::unordered_map;
 #include <cstring>
 #include <exception>
 using std::logic_error;
@@ -320,8 +323,8 @@ int HttpSession::parseRcvMsg()
 // 报文处理任务(可在IO线程或工作线程中运行)
 void HttpSession::handleMessageTask(SP_HttpProcessContext spProContext)
 {
-    parseHttpRequest(spProContext);// 分解报文
-    httpProcess(spProContext);// 处理报文并构建响应报文
+    if (-1 != parseHttpRequest(spProContext));// 分解报文
+        httpProcess(spProContext);// 处理报文并构建响应报文
 
     if (loop_->isInLoopThread())// 判断当前线程是在IO线程还是工作线程
     {
@@ -337,50 +340,160 @@ void HttpSession::handleMessageTask(SP_HttpProcessContext spProContext)
     }    
 }
 
-void HttpSession::parseHttpRequest(SP_HttpProcessContext spProContext)
+// 解析请求行
+int HttpSession::parseRequestLine(SP_HttpProcessContext spProContext)
 {
-    std::string msg;
-    msg.swap(spProContext->requestContext);
-	std::string crlf("\r\n"), crlfcrlf("\r\n\r\n");
-	size_type prev = 0, next = 0, posColon;
-	std::string key, value;
-
-	// 分解请求行
-	if ((next = msg.find(crlf, prev)) != std::string::npos) // std::string::npos用来表示一个不存在的位置，
-    {                                                       // 用于判断字符串中不存在查找子串
-		std::string firstLine(msg.substr(prev, next - prev));
-		prev = next;
-		std::stringstream sstream(firstLine);
-		sstream >> (spProContext -> method);
-		sstream >> (spProContext -> url);
-		sstream >> (spProContext -> version);
-	}
-	else
-	{
-        ;
-	}
-
-    // 分解首部
-	size_type pos_crlfcrlf = 0;
-	if (( pos_crlfcrlf = msg.find(crlfcrlf, prev)) != std::string::npos)
-	{
-		while (prev != pos_crlfcrlf)
-        {
-            next = msg.find(crlf, prev + 2);// prev表示/r/n的/r的位置
-            posColon = msg.find(":", prev + 2); 
-            key = msg.substr(prev + 2, posColon - prev-2);// 提取Content_length:size中的Content_length
-            value = msg.substr(posColon + 2, next-posColon-2);
-            prev = next;
-            spProContext->header.insert(std::pair<std::string, std::string>(key, value));
-        }
-	}
-    else
+    string requestLine;
+    string &request = spProContext->requestContext;
+    size_type crlf_pos = request.find("\r\n");
+    if (crlf_pos == string::npos)
     {
-        std::cout << "Error in httpParser: http_request_header isn't complete!" << std::endl;
+        httpError(400, "Wrong request!", spProContext);
+        return -1;
     }
+    requestLine = request.substr(0, crlf_pos);
+    request = request.substr(crlf_pos+2);
+    stringstream sstream(requestLine);
+    ParseRequestLineState state = PARSE_METHOD;
+    string tmp;
+    while (sstream >> tmp) 
+    {
+	    switch (state) 
+        {
+            case PARSE_METHOD:
+            {
+                spProContext->method = tmp;
+                state = PARSE_URI;
+                break;
+            }
+            case PARSE_URI:
+            {
+	            spProContext->url = tmp;
+                state = PARSE_VERSION;
+                break;
+            }
+            case PARSE_VERSION:
+            {
+                spProContext->version = tmp;
+                state = PARSE_SUCCESS;
+                break;
+            }
+            case PARSE_SUCCESS:
+            {
+                state = PARSE_ERROR;
+                httpError(400, "Wrong request!", spProContext);
+                return -1;
+            }
+        }
+    }
+    if (state != PARSE_SUCCESS) 
+    {
+        httpError(400, "Wrong request!", spProContext);
+        return -1;
+    }
+    else
+        return 0;
+}
 
-    // parse http request body
-	spProContext->body = msg.substr(pos_crlfcrlf + 4);
+// 解析请求首部
+int HttpSession::parseRequestHeader(SP_HttpProcessContext spProContext)
+{
+    string requestHeader;
+    string &request = spProContext->requestContext;
+    unordered_map<string, string> &header = spProContext->header;
+    size_type start = 0;
+    size_type pos;
+    string key;
+    string value;
+    ParseRequestHeaderState state = H_KEY;
+    while (state != H_END) 
+    {
+        switch (state) 
+        {
+            case H_KEY:
+            {
+                pos = request.find(":", start);
+                if (pos != string::npos) 
+                {
+                    key = request.substr(start, pos-start);
+                    ++pos;
+                    while (pos < request.size() && request[pos] == ' ') ++pos;
+                    start = pos;
+                    state = H_VALUE;
+                }
+                else
+                {
+                    state = H_ERROR;
+                }
+                break;
+            }
+            case H_VALUE:
+            {
+                pos = request.find("\r\n", start);
+                if (pos != string::npos) 
+                {
+                    value = request.substr(start, pos-start);
+                    header[key] = value;
+                    start = pos+2;
+                    state = H_SUCCESS;
+                }
+                else
+                {
+                    state = H_ERROR;
+                }
+                break;
+            }
+            case H_SUCCESS:
+            {
+                // 剩余字符不足组成"\r\n"
+                if (start > request.size()-2) 
+                {
+                    state = H_ERROR;
+                }
+                else
+                {
+                    request[start] == '\r' && request[start+1] == '\n' ? state = H_END : state = H_KEY;
+                    start = start+2;
+                }
+                break;
+            }
+            case H_ERROR:
+            {
+                httpError(400, "Wrong request!", spProContext);
+                return -1;
+            }
+        }
+    }
+    request = request.substr(start);
+    return 0;
+}
+
+// 解析请求体
+int HttpSession::parseRequestBody(SP_HttpProcessContext spProContext)
+{
+   (spProContext->body).swap(spProContext->requestContext);
+   return 0;
+}
+
+int HttpSession::parseHttpRequest(SP_HttpProcessContext spProContext)
+{
+    if (-1 == parseRequestLine(spProContext))
+    {
+        // 打印出错日志
+        return -1;
+    }
+    if (-1 == parseRequestHeader(spProContext)) 
+    {
+        // 打印出错日志
+        return -1;
+    }
+    if (-1 == parseRequestBody(spProContext)) 
+    {
+        // 打印出错日志
+        return -1;
+    }
+    // 解析成功
+    return 0;
 }
 
 /* 根据分解后的HTTP请求报文，进行处理(构建HTTP响应报文) */
