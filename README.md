@@ -73,7 +73,7 @@ A C++ High Performance WebServer
 ### 单线程测试 （执行命令：./httpserver 80 0 0 0）
 * wrk测试结果：11.2万+QPS、6.6万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_hello.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/%E9%A1%B9%E7%9B%AE%E5%8E%8B%E6%B5%8B%E6%95%B0%E6%8D%AE/wrk/wrk_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_html.png)
