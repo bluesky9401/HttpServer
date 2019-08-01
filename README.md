@@ -73,33 +73,33 @@ A C++ High Performance WebServer
 ### 单线程测试 （执行命令：./httpserver 80 0 0 0）
 * wrk测试结果：11.2万+QPS、6.6万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/%E9%A1%B9%E7%9B%AE%E5%8E%8B%E6%B5%8B%E6%95%B0%E6%8D%AE/wrk/wrk_0_0_hello.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_html.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_index.png)
 
 * WebBench测试结果
   * 内存中的HTTP报文（无磁盘IO影响）
- ![WebBench](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/WebBench_hello.png)
+ ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![WebBench](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/WebBench_html.png)
+ ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_index.png)
  
-### 多线程测试1 （4个IO线程 执行命令：./httpserver 80 4 0）
-* wrk测试结果：21万+QPS、5万+QPS
+### 多线程测试1 （4个IO线程 执行命令：./httpserver 80 4 0 0）
+* wrk测试结果：16.2万+QPS、15.2万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_hello_4_iothread.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_html_4_iothread.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_index.png)
  
- ### 多线程测试2 （4个IO线程 2个工作线程 执行命令：./httpserver 80 4 2）
-* wrk测试结果：19万+QPS、11万+QPS
+ ### 多线程测试2 （4个IO线程 2个工作线程 执行命令：./httpserver 80 4 2 0）
+* wrk测试结果：12.8万+QPS、9.8万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_hello_4_iothread_2_workerthread.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_html_4_iothread_2_workerthread.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_0_index.png)
  
 ## License
 See [LICENSE](https://github.com/chenshuaihao/NetServer/blob/master/LICENSE)
