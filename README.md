@@ -18,9 +18,11 @@ A C++ High Performance WebServer
 * 学习多线程下的网络编程，巩固TCP/IP、HTTP协议等知识。
 
 ## Envoirment  
-* OS: CentOS Linux release 7.0.1406 (# cat /etc/redhat-release)
-* kernel: 3.10.0-123.el7.x86_64 (# uname -a)
-* Complier: 4.8.5
+* 操作系统: Ubuntu 17.04
+* 内核: 4.10.0-42-generic
+* 编辑工具：Vim
+* 编译工具: g++ 6.3.0
+* 排查工具：gdb
 
 ## Build
 
@@ -28,15 +30,15 @@ A C++ High Performance WebServer
 	$ make clean
 
 ## Run
-	$ ./httpserver [port] [iothreadnum] [workerthreadnum]
+	$ ./httpServer [port] [iothreadnum] [workerthreadnum] [idleSeconds]
 	
-	例：$ ./httpserver 80 4 2
-	表示开启80端口，采用4个IO线程、2个工作线程的方式 
+	例：$ ./httpServer 80 4 2 60
+	表示开启80端口，采用4个IO线程、2个工作线程、空闲连接超时时间为60s的方式 
 	一般情况下，业务处理简单的话，工作线程数设为0即可
     
 ## Tech
- * 基于epoll的IO复用机制实现Reactor模式，采用边缘触发（ET）模式，和非阻塞模式
- * 由于采用ET模式，read、write和accept的时候必须采用循环的方式，直到error==EAGAIN为止，防止漏读等清况，这样的效率会比LT模式高很多，减少了触发次数
+ * 基于epoll的IO复用机制实现Reactor模式，采用边缘触发（ET）模式，和非阻塞模式。
+ * 由于采用ET模式，read、write和accept的时候必须采用循环的方式，直到error==EAGAIN为止，防止漏读等清况。
  * Version-0.1.0基于单线程实现，Version-0.2.0利用线程池实现多IO线程，Version-0.3.0实现通用worker线程池，基于one loop per thread的IO模式
  * 线程模型将划分为主线程、IO线程和worker线程，主线程接收客户端连接（accept），并通过Round-Robin策略分发给IO线程，IO线程负责连接管理（即事件监听和读写操作），worker线程负责业务计算任务（即对数据进行处理，应用层处理复杂的时候可以开启）
  * 基于时间轮实现定时器功能，定时剔除不活跃连接，时间轮的插入、删除复杂度为O(1)，执行复杂度取决于每个桶上的链表长度
