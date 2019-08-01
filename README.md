@@ -50,7 +50,8 @@ A C++ High Performance WebServer
  * 支持优雅关闭连接
    * 通常情况下，由客户端主动发起FIN关闭连接(若服务器没有开启剔除空闲连接)
    * 客户端发送FIN关闭连接后，服务器需要等待当前HTTP层报文全部处理完成以及TCP缓冲区中的数据发送完毕才close套接字，而不是直接暴力close。
-   * 如果连接出错，则服务器可以直接调用forceClose操作。
+   * 在上层HTTP解析出错后，服务器会在发送完差错报文后直接调用close关闭连接。
+   * 如果连接出错或连接超时，则服务器可以直接调用forceClose操作关闭连接。
 
 
 ## Performance Test
@@ -62,14 +63,14 @@ A C++ High Performance WebServer
      保存到内存中的HTTP报文（无磁盘IO影响）、HTTP报头+读取磁盘的index.html网页（有磁盘IO影响）
   
 
- * 测试环境（虚拟机环境下测试，性能可能较物理机低）
+ * 测试环境（虚拟机环境下测试）
    * CPU: Intel(R) Core(TM) i5-4440 CPU @ 3.10GHz
    * Memory: 2G
    * VirtualBox 5.2.20
    * OS: CentOS Linux release 7.0.1406
    * kernel: 3.10.0-123.el7.x86_64
   
-### 单线程测试 （执行命令：./httpserver 80 0 0）
+### 单线程测试 （执行命令：./httpserver 80 0 0 0）
 * wrk测试结果：9万+QPS、4万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
  ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_hello.png)
