@@ -70,13 +70,14 @@ A C++ High Performance WebServer
    * 操作系统: Ubuntu 17.04
    * 内核: 4.10.0-42-generic
   
-### 单线程测试 （执行命令：./httpserver 80 0 0 0）
+### 单线程测试 （执行命令：./httpServer 80 0 0 0）
 * wrk测试结果：11.2万+QPS、6.6万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_0_index.png)
+
 对比上述数据可以看出，与无磁盘IO影响相比，有磁盘IO导致吞吐率下降50%。究其原因，在单线程时，由于磁盘IO会阻塞线程从而导致吞吐率下降。
 * WebBench测试结果
   * 内存中的HTTP报文（无磁盘IO影响）
@@ -85,15 +86,16 @@ A C++ High Performance WebServer
   * index.html网页（有磁盘IO影响）
  ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/webbench/webbench_0_0_0_hello.png)
  
-### 多线程测试1 （4个IO线程 执行命令：./httpserver 80 4 0 0）
+### 多线程测试1 （4个IO线程 执行命令：./httpServer 80 4 0 0）
 * wrk测试结果：16.2万+QPS、15.2万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_0_index.png)
+ 
  将使用4个IO线程与上述单线程相比，无磁盘IO下吞吐率上升44%，有磁盘IO吞吐率上升230%。可以明显看出，相较于单线程，多线程下服务器性能有明显的提升。同时，多线程下服务器的性能受磁盘IO的影响远远小于单线程。
- ### 多线程测试2 （4个IO线程 2个工作线程 执行命令：./httpserver 80 4 2 0）
+ ### 多线程测试2 （4个IO线程 2个工作线程 执行命令：./httpServer 80 4 2 0）
 * wrk测试结果：12.8万+QPS、9.8万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_0_hello.png)
@@ -101,10 +103,6 @@ A C++ High Performance WebServer
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_0_index.png)
  
-## License
-
-## Others
-本项目将一直进行开发和维护，也非常欢迎各位小伙伴提出建议，共同学习，共同进步！
-
-Enjoy!
+ 与前面仅使用4个IO线程相比，吞吐率有所下降。
+ 
 
