@@ -5,8 +5,10 @@ A C++ High Performance WebServer
 
 ## Introduction  
 
-本项目为应用C++11编写的基于Reactor事件分发模式以及Epoll边沿触发IO复用方式的多线程HTTP网络服务器，在本项目中，主要完成的工作有：
-HTTP服务器实现了HTTP的解析和Get方法请求，目前支持静态资源访问，支持HTTP长连接；该框架不限于这两类服务器，用户可根据需要编写应用层服务。
+本项目为应用C++11编写的基于Reactor事件分发模式以及Epoll边沿触发IO复用方式的多线程HTTP网络服务器，在本项目中，目前主要完成的工作有：
+* 实现了一个基于Reactor模式的事件分发器。
+* 实现了一个基本的工作线程池，用于解析处理报文。
+* 应用状态机实现HTTP的解析，目前支持GET方法、HEAD方法的请求，支持对静态资源的访问，支持HTTP长连接以及管线化请求。
 
 ## Origin and purpose of the project
 * 项目起源：大四的时候实现了一个简单基于epoll的多线程服务器，支持HTTP的GET方法和JSON解析（见[forumNet](https://github.com/chenshuaihao/forumNet/tree/master/forumNet)），后来看了陈硕的书，决定重写一个网络服务器。在项目过程中参阅了网上很多优秀的博客和开源项目，也参考了陈硕和林亚的代码，在此向他们表示感谢！
