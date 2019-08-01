@@ -73,47 +73,35 @@ A C++ High Performance WebServer
 ### 单线程测试 （执行命令：./httpserver 80 0 0 0）
 * wrk测试结果：11.2万+QPS、6.6万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_hello.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_index.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_0_index.png)
 
 * WebBench测试结果
   * 内存中的HTTP报文（无磁盘IO影响）
- ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_hello.png)
+ ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_index.png)
+ ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_0_index.png)
  
 ### 多线程测试1 （4个IO线程 执行命令：./httpserver 80 4 0 0）
 * wrk测试结果：16.2万+QPS、15.2万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_hello.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_index.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_0_index.png)
  
  ### 多线程测试2 （4个IO线程 2个工作线程 执行命令：./httpserver 80 4 2 0）
 * wrk测试结果：12.8万+QPS、9.8万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
- ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_hello.png)
+ ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_0_index.png)
  
 ## License
-See [LICENSE](https://github.com/chenshuaihao/NetServer/blob/master/LICENSE)
-
-## Roadmap
-日志系统、内存池等
-
-## Develop and Fix List
-* 2019-02-21 Dev: 实现IO线程池，性能比单线程提升30+%，由EventLoopThreadPool类对IO线程进行管理，主线程accept客户端连接，并通过Round-Robin策略分发给IO线程，IO线程负责事件监听、读写操作和业务计算
-* 2019-02-21 Fix: 修复多线程下HttpServer::HandleMessage函数中phttpsession可能为NULL，导致出现SegmentFault的情况。因为新连接事件过早的添加到epoll中，而HttpSession还没new，如果这时候有数据来时，会出现phttpsession==NULL，无法处理数据，段错误。
-* 2019-02-24 Dev: 实现worker线程池，响应index.html网页的性能比单线程提升100+%；实现了跨线程唤醒
-* 2019-03-17 Dev: 基于时间轮实现定时器功能，定时剔除不活跃连接，时间轮的插入、删除复杂度为O(1)，执行复杂度取决于每个桶上的链表长度
-* 2019-03-27 Dev&Fix: 把部分关键的原始指针改成智能指针，解决多线程下资源访问引起的内存问题；修复一些内存问题（段错误、double free等）；添加注释
-* 2019-03-28 Fix: 头文件包含次序调整；部分函数参数加const修饰和改为引用传递，提高程序效率
 
 ## Others
 本项目将一直进行开发和维护，也非常欢迎各位小伙伴提出建议，共同学习，共同进步！
