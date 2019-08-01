@@ -104,10 +104,13 @@ A C++ High Performance WebServer
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_2_0_index.png)
  
  与前面仅使用4个IO线程相比，吞吐率有所下降。
- ### 多线程测试3(开启提出空闲连接) （4个IO线程 执行命令：./httpServer 80 4 0 15）
+ ### 多线程测试3(开启剔除空闲连接) （4个IO线程 执行命令：./httpServer 80 4 0 15）
+ * wrk测试结果：15.2万+QPS、13.3万+QPS
  * 内存中的HTTP报文（无磁盘IO影响）
   ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_15_hello.png)
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_15_index.png)
+ 
+ 与没有开启空闲连接剔除相比，无磁盘IO影响吞吐率下降7%，有磁盘IO影响吞吐率下降13%，性能略微下降。
 
