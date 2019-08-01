@@ -11,6 +11,7 @@ A C++ High Performance WebServer
 * 应用状态机实现HTTP的解析，目前支持GET方法、HEAD方法的请求，支持对静态资源的访问，支持HTTP长连接以及管线化请求。
 * 应用智能指针对所分配的资源块进行管理。
 * 实现了时间轮，用于剔除服务器上的空闲连接。
+项目的整体框架参考了[NetServer](https://github.com/chenshuaihao/NetServer),感谢chenshuaihao老哥！
 
 ## The purpose of this project
 项目的目的主要有以下几个方面：
