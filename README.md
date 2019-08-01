@@ -60,18 +60,18 @@ A C++ High Performance WebServer
    * 模拟1000条TCP连接，持续时间60s
    * 测试长连接情况
    * 考虑到磁盘IO的影响，分别对有/无磁盘IO影响两种情况做测试，测试时服务器的响应报文分别为:
-     保存到内存中的HTTP报文（无磁盘IO影响）、HTTP报头+读取磁盘的index.html网页（有磁盘IO影响）
+     直接构建的HTTP响应报文（无磁盘IO影响）、HTTP报头+读取磁盘的index.html网页（有磁盘IO影响）
   
 
  * 测试环境（虚拟机环境下测试）
-   * CPU: Intel(R) Core(TM) i5-4440 CPU @ 3.10GHz
-   * Memory: 2G
-   * VirtualBox 5.2.20
-   * OS: CentOS Linux release 7.0.1406
-   * kernel: 3.10.0-123.el7.x86_64
+   * CPU: Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz
+   * 内存: 3G
+   * 虚拟机：VMware-Workstation
+   * 操作系统: Ubuntu 17.04
+   * 内核: 4.10.0-42-generic
   
 ### 单线程测试 （执行命令：./httpserver 80 0 0 0）
-* wrk测试结果：9万+QPS、4万+QPS
+* wrk测试结果：11.2万+QPS、6.6万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
  ![wrk](https://github.com/chenshuaihao/NetServer/blob/master/docs/images/wrk_hello.png)
 
