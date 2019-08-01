@@ -66,8 +66,6 @@ int ThreadPool::addTask(Task_t task)
     {
         MutexLockGuard guard(mutex_);
         /*添加任务到任务队列*/
-        cout << "add task!" << endl;
-
         taskQueue_[rear_] = task; 
         rear_ = (rear_ + 1) % maxQueueSize_;  /* 逻辑环  */
         queueSize_++; //任务数加1
@@ -104,7 +102,6 @@ void ThreadPool::threadFunc()
             queueSize_--;
         } 
         //执行刚才取出的任务
-        cout << "ThreadPool do task" << endl;
         task();                           //执行任务
 //        gettimeofday(&tv_end, NULL);
 //        std::cout << "process time = " << tv_end.tv_sec - tv_begin.tv_sec << "s " 

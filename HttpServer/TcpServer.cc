@@ -101,7 +101,7 @@ void TcpServer::onNewConnection()
         // 由TcpConnection向IO线程注册事件
         spTcpConn->addChannelToLoop();// 最后是将TcpConnection中的回调函数注册到epoller_
         ++ connCount_;
-        cout << "Connections' number = " << connCount_ << endl;
+        // cout << "Connections' number = " << connCount_ << endl;
     }
 }
 
