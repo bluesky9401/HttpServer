@@ -105,6 +105,7 @@ A C++ High Performance WebServer
  
  与前面仅使用4个IO线程相比，吞吐率有所下降。
  ### 多线程测试3(开启提出空闲连接) （4个IO线程 执行命令：./httpServer 80 4 0 15）
+ * 内存中的HTTP报文（无磁盘IO影响）
   ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_15_hello.png)
 
   * index.html网页（有磁盘IO影响）
