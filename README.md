@@ -9,10 +9,12 @@ A C++ High Performance WebServer
 * 实现了一个基于Reactor模式的事件分发器。
 * 实现了一个基本的工作线程池，用于解析处理报文。
 * 应用状态机实现HTTP的解析，目前支持GET方法、HEAD方法的请求，支持对静态资源的访问，支持HTTP长连接以及管线化请求。
+* 实现了时间轮，用于剔除服务器上的空闲连接。
 
-## Origin and purpose of the project
-* 项目起源：大四的时候实现了一个简单基于epoll的多线程服务器，支持HTTP的GET方法和JSON解析（见[forumNet](https://github.com/chenshuaihao/forumNet/tree/master/forumNet)），后来看了陈硕的书，决定重写一个网络服务器。在项目过程中参阅了网上很多优秀的博客和开源项目，也参考了陈硕和林亚的代码，在此向他们表示感谢！
-* 项目目的：学习C++知识、部分C++11的语法和编码规范、学习巩固网络编程、网络IO模型、多线程、git使用、Linux命令、性能分析、TCP/IP、HTTP协议等知识
+## The purpose of this project
+项目的目的主要有以下几个方面：
+* 增加C++的编程经验，
+* 学习巩固网络编程、网络IO模型、多线程、git使用、Linux命令、性能分析、TCP/IP、HTTP协议等知识
 
 ## Envoirment  
 * OS: CentOS Linux release 7.0.1406 (# cat /etc/redhat-release)
