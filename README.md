@@ -80,10 +80,10 @@ A C++ High Performance WebServer
 
 * WebBench测试结果
   * 内存中的HTTP报文（无磁盘IO影响）
- ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_0_hello.png)
+ ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/webbench/webbench_0_0_0_hello.png)
 
   * index.html网页（有磁盘IO影响）
- ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/webbench_0_0_0_index.png)
+ ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/webbench/webbench_0_0_0_hello.png)
  
 ### 多线程测试1 （4个IO线程 执行命令：./httpserver 80 4 0 0）
 * wrk测试结果：16.2万+QPS、15.2万+QPS
