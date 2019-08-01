@@ -77,7 +77,7 @@ A C++ High Performance WebServer
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_0_0_0_index.png)
-
+对比上述数据可以看出，与无磁盘IO影响相比，有磁盘IO导致吞吐率下降50%。究其原因，在单线程时，由于磁盘IO会阻塞线程从而导致吞吐率下降。
 * WebBench测试结果
   * 内存中的HTTP报文（无磁盘IO影响）
  ![WebBench](https://github.com/chentongjie94/webserver_chen/blob/master/data/webbench/webbench_0_0_0_hello.png)
@@ -92,7 +92,7 @@ A C++ High Performance WebServer
 
   * index.html网页（有磁盘IO影响）
  ![wrk](https://github.com/chentongjie94/webserver_chen/blob/master/data/wrk/wrk_4_0_0_index.png)
- 
+ 将使用4个IO线程与上述单线程相比，无磁盘IO下吞吐率上升44%，有磁盘IO吞吐率上升230%。可以明显看出，相较于单线程，多线程下服务器性能有明显的提升。同时，多线程下服务器的性能受磁盘IO的影响远远小于单线程。
  ### 多线程测试2 （4个IO线程 2个工作线程 执行命令：./httpserver 80 4 2 0）
 * wrk测试结果：12.8万+QPS、9.8万+QPS
   * 内存中的HTTP报文（无磁盘IO影响）
