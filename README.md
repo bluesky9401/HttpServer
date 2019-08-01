@@ -9,12 +9,13 @@ A C++ High Performance WebServer
 * 实现了一个基于Reactor模式的事件分发器。
 * 实现了一个基本的工作线程池，用于解析处理报文。
 * 应用状态机实现HTTP的解析，目前支持GET方法、HEAD方法的请求，支持对静态资源的访问，支持HTTP长连接以及管线化请求。
+* 应用智能指针对所分配的资源块进行管理。
 * 实现了时间轮，用于剔除服务器上的空闲连接。
 
 ## The purpose of this project
 项目的目的主要有以下几个方面：
-* 增加C++的编程经验，
-* 学习巩固网络编程、网络IO模型、多线程、git使用、Linux命令、性能分析、TCP/IP、HTTP协议等知识
+* 增加C++的编程经验
+* 学习多线程下的网络编程，巩固TCP/IP、HTTP协议等知识。
 
 ## Envoirment  
 * OS: CentOS Linux release 7.0.1406 (# cat /etc/redhat-release)
