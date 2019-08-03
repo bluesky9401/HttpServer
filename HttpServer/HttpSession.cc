@@ -453,7 +453,8 @@ int HttpSession::parseRequestHeader(SP_HttpProcessContext spProContext)
                 else
                 {
                     request[start] == '\r' && request[start+1] == '\n' ? state = H_END : state = H_KEY;
-                    start = start+2;
+                    if (state == H_END) 
+                        start = start+2;
                 }
                 break;
             }
